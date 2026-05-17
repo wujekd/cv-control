@@ -1,0 +1,276 @@
+.panel {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.85rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.header h2,
+.header p,
+.headerWithAction h2,
+.headerWithAction p {
+  margin: 0;
+}
+
+.header p,
+.headerWithAction p {
+  margin-top: 0.16rem;
+  color: var(--color-muted);
+  font-size: 0.84rem;
+}
+
+.headerWithAction {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.headerWithAction > div {
+  min-width: 0;
+}
+
+.addButton,
+.removeButton,
+.utilityButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+}
+
+.addButton {
+  padding: 0.28rem 0.52rem;
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.buttonGlyph {
+  font-weight: 700;
+  line-height: 1;
+}
+
+.removeButton {
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border-color: rgba(164, 65, 47, 0.22);
+  color: var(--color-danger);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.utilityButton {
+  min-height: 1.7rem;
+  padding: 0.22rem 0.5rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.activeUtilityButton {
+  border-color: rgba(14, 90, 99, 0.38);
+  background: rgba(14, 90, 99, 0.08);
+  color: #0e5a63;
+}
+
+.stack {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.7rem;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-panel-raised);
+  min-width: 0;
+}
+
+.dirtyCard {
+  border-color: rgba(190, 127, 33, 0.56);
+  background: rgba(190, 127, 33, 0.1);
+  box-shadow:
+    inset 4px 0 0 rgba(190, 127, 33, 0.9),
+    inset 0 0 0 1px rgba(190, 127, 33, 0.14);
+}
+
+.inlineActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.itemActionCluster,
+.bulletActionCluster,
+.selectionControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+}
+
+.cardTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.field {
+  display: grid;
+  gap: 0.24rem;
+  min-width: 0;
+}
+
+.field span {
+  font-size: 0.8rem;
+}
+
+.inlineInput {
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inlineLabel {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+  min-width: 0;
+}
+
+.bullets {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.subsection {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.18rem;
+  min-width: 0;
+}
+
+.subsectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.subsectionMeta {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.subsectionDescription,
+.emptyHint {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.linkList {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.linkCard {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.58rem;
+  border: 1px solid var(--color-border-soft);
+  background: rgba(18, 30, 40, 0.03);
+  min-width: 0;
+}
+
+.linkCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.bulletRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.bulletEditor {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.arrowStack {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.arrowStack button {
+  min-width: 1.55rem;
+  padding: 0.06rem 0.28rem;
+  line-height: 1;
+}
+
+.skillRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: end;
+}
+
+.skillGroupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.skillGroupMeta {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.skillGroupCount {
+  font-size: 0.76rem;
+  color: var(--color-muted);
+}
+
+.skillGroupActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+}

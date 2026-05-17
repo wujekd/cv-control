@@ -1,0 +1,198 @@
+.panel {
+  display: grid;
+  gap: 1rem;
+  padding: 0.95rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  min-height: 0;
+  overflow: auto;
+}
+
+.header,
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: start;
+  gap: 0.65rem;
+}
+
+.header h2,
+.header p,
+.groupHeader h3,
+.groupHeader p {
+  margin: 0;
+}
+
+.header p,
+.groupHeader p,
+.defaultMeta,
+.fieldLabel small,
+.templateMeta span {
+  color: var(--color-muted);
+}
+
+.templateMeta {
+  display: grid;
+  gap: 0.15rem;
+  text-align: right;
+  font-size: 0.82rem;
+}
+
+.saveButton {
+  padding: 0.42rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+.group {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.62rem;
+  padding: 0.82rem 0.88rem;
+  border: 1px solid rgba(118, 130, 145, 0.2);
+  border-radius: 0.95rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 248, 250, 0.88)),
+    var(--color-panel-raised);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 10px 20px rgba(24, 30, 36, 0.04);
+  min-width: 0;
+}
+
+.fieldOverridden {
+  border-color: rgba(14, 90, 99, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 12px 24px rgba(14, 90, 99, 0.08);
+}
+
+.fieldHeader {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.fieldLabel label {
+  font-weight: 600;
+  min-width: 0;
+}
+
+.stateBadge {
+  flex: 0 0 auto;
+  padding: 0.18rem 0.48rem;
+  border-radius: 999px;
+  background: rgba(18, 30, 40, 0.06);
+  color: #49545d;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.fieldOverridden .stateBadge {
+  background: rgba(14, 90, 99, 0.12);
+  color: #0e5a63;
+}
+
+.fieldControl {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+  padding: 0.18rem;
+  border: 1px solid rgba(118, 130, 145, 0.22);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 2px rgba(20, 24, 28, 0.04);
+}
+
+.valueInput {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0.48rem 0.52rem;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.valueInput:focus {
+  outline: none;
+}
+
+.unit {
+  flex: 0 0 auto;
+  min-width: 2.1rem;
+  margin-left: 0.08rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.7rem;
+  background: rgba(18, 30, 40, 0.06);
+  color: #4d5861;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.fieldFooter {
+  min-width: 0;
+}
+
+.defaultMeta {
+  font-size: 0.78rem;
+  min-width: 0;
+}
+
+.resetButton {
+  flex: 0 0 auto;
+  margin-left: 0.08rem;
+  padding: 0.42rem 0.58rem;
+  border-radius: 999px;
+  border-color: rgba(118, 130, 145, 0.28);
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 0.75rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.resetButton:not(:disabled):hover {
+  border-color: rgba(14, 90, 99, 0.35);
+  color: #0e5a63;
+}
+
+@media (max-width: 1220px) {
+  .fieldGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .fieldGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,119 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 0;
+  height: 100%;
+}
+
+.header h2,
+.header p {
+  margin: 0;
+}
+
+.header p {
+  margin-top: 0.25rem;
+  color: var(--color-muted);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  flex-wrap: nowrap;
+}
+
+.toolbarPrimary {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 0 0 auto;
+}
+
+.toolbarTitle {
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.previewTabs {
+  display: flex;
+  gap: 0.28rem;
+}
+
+.previewTab,
+.activePreviewTab {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-panel-raised);
+  padding: 0.28rem 0.5rem;
+  font-size: 0.76rem;
+}
+
+.activePreviewTab {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.statusMeta {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-panel-raised);
+  color: inherit;
+  text-decoration: none;
+  padding: 0.34rem 0.58rem;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.warning {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(164, 65, 47, 0.25);
+  background: rgba(164, 65, 47, 0.08);
+  color: var(--color-danger);
+  font-size: 0.82rem;
+}
+
+.frame {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1px solid var(--color-border);
+  background: white;
+}
+
+.fallback {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  overflow: auto;
+}
+
+.fallback p,
+.fallback summary,
+.fallback pre {
+  margin: 0;
+}
+
+.fallback details {
+  margin-top: 0.8rem;
+}
+
+.fallback pre {
+  margin-top: 0.8rem;
+  max-height: 14rem;
+  overflow: auto;
+  padding: 0.9rem;
+  background: var(--color-panel-raised);
+}

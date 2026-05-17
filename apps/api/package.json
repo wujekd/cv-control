@@ -1,0 +1,19 @@
+{
+  "name": "@cv-control/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -b",
+    "start": "node dist/index.js",
+    "import:cv": "node --import tsx/esm src/scripts/importCurrentCv.ts"
+  },
+  "dependencies": {
+    "@cv-control/shared": "0.1.0",
+    "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "pdf-lib": "^1.17.1"
+  }
+}

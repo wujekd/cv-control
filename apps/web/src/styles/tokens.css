@@ -1,0 +1,16 @@
+:root {
+  --color-canvas: #f8f4eb;
+  --color-panel: rgba(255, 252, 247, 0.86);
+  --color-panel-raised: #fffdfa;
+  --color-border: rgba(31, 41, 51, 0.18);
+  --color-border-soft: rgba(31, 41, 51, 0.1);
+  --color-accent: #0e5a63;
+  --color-ink: #162028;
+  --color-muted: #61707a;
+  --color-danger: #a4412f;
+  --shadow-panel: 0 14px 28px rgba(33, 38, 45, 0.08);
+  --radius-panel: 0;
+  --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
