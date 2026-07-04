@@ -1,4 +1,9 @@
-import { buildRenderableCv, type CvProfile, type CvVersion } from "@cv-control/shared";
+import {
+  buildRenderableCv,
+  createInheritedLocalOverrides,
+  type CvProfile,
+  type CvVersion
+} from "@cv-control/shared";
 import cors from "cors";
 import express from "express";
 import { openDatabase } from "./db/sqlite";
@@ -81,6 +86,7 @@ export function createApp() {
       id: createId("version"),
       name: request.body?.name ?? `${existing.name} Copy`,
       parentVersionId: existing.id,
+      localOverrides: createInheritedLocalOverrides(),
       createdAt: now,
       updatedAt: now
     };
@@ -121,4 +127,3 @@ export function createApp() {
 
   return app;
 }
-
