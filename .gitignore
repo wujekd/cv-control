@@ -4,6 +4,10 @@ dist
 *.log
 coverage
 apps/api/data
+*.tsbuildinfo
+KickMe/
+.agents/
+skills-lock.json
 
 cv template.png
 react-app-design-patterns.md
