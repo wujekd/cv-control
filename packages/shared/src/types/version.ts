@@ -1,4 +1,5 @@
 import type { ID } from "./common";
+import type { BasicsSection, SummarySection } from "./cv";
 import type { DocumentStyleOverrides } from "./template";
 
 export const SECTION_TYPES = [
@@ -21,11 +22,27 @@ export interface VersionSectionState {
   selectedBulletIds: ID[];
 }
 
+export interface CvVersionInheritanceState {
+  documentTemplateId?: boolean;
+  documentStyleOverrides?: boolean;
+  sectionOrder?: boolean;
+  summary?: boolean;
+  basics?: boolean;
+  sections?: Partial<Record<SectionType, boolean>>;
+}
+
+export interface CvVersionContentOverrides {
+  summary?: SummarySection | null;
+  basics?: Partial<BasicsSection>;
+}
+
 export interface CvVersion {
   id: ID;
   profileId: ID;
   name: string;
   parentVersionId?: ID | null;
+  localOverrides?: CvVersionInheritanceState;
+  contentOverrides?: CvVersionContentOverrides;
   documentTemplateId: ID;
   documentStyleOverrides?: DocumentStyleOverrides;
   sectionOrder: SectionType[];
