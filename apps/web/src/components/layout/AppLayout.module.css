@@ -1,15 +1,48 @@
 .shell {
   height: 100dvh;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top left, rgba(230, 225, 214, 0.65), transparent 32%),
-    linear-gradient(180deg, var(--color-canvas) 0%, #f4f0e8 100%);
+  background: var(--color-canvas);
   color: var(--color-ink);
+}
+
+.skipLink {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top));
+  left: max(0.75rem, env(safe-area-inset-left));
+  z-index: 20;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-raised);
+  box-shadow: var(--shadow-panel);
+  transform: translateY(-150%);
+}
+
+.skipLink:not(:focus-visible) {
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skipLink:focus-visible {
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+  transform: translateY(0);
 }
 
 .main {
   height: 100%;
   min-height: 0;
-  padding: 0 1.5rem 1.5rem;
+  padding:
+    max(0.7rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
   overflow: hidden;
 }

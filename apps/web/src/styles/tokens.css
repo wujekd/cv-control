@@ -1,16 +1,19 @@
 :root {
-  --color-canvas: #f8f4eb;
-  --color-panel: rgba(255, 252, 247, 0.86);
-  --color-panel-raised: #fffdfa;
-  --color-border: rgba(31, 41, 51, 0.18);
-  --color-border-soft: rgba(31, 41, 51, 0.1);
-  --color-accent: #0e5a63;
-  --color-ink: #162028;
-  --color-muted: #61707a;
-  --color-danger: #a4412f;
-  --shadow-panel: 0 14px 28px rgba(33, 38, 45, 0.08);
-  --radius-panel: 0;
+  --color-canvas: #edf1ef;
+  --color-panel: #fbfcfb;
+  --color-panel-raised: #ffffff;
+  --color-border: rgba(24, 36, 40, 0.18);
+  --color-border-soft: rgba(24, 36, 40, 0.1);
+  --color-accent: #0b6b60;
+  --color-accent-strong: #084d47;
+  --color-accent-soft: rgba(11, 107, 96, 0.1);
+  --color-ink: #142022;
+  --color-muted: #607074;
+  --color-warning: #b7791f;
+  --color-danger: #a33a2a;
+  --shadow-panel: 0 18px 38px rgba(20, 32, 34, 0.1);
+  --radius-panel: 0.5rem;
+  --radius-control: 0.38rem;
   --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
 }
-

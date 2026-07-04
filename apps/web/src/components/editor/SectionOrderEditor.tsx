@@ -10,6 +10,7 @@ interface SectionOrderEditorProps {
   sectionOrder: SectionType[];
   selectedSidebarKey: EditorSidebarKey;
   dirtyKeys: EditorSidebarKey[];
+  inheritanceState: Partial<Record<EditorSidebarKey, "baseline" | "inherited" | "custom">>;
   onToggle: (sectionType: SectionType, enabled: boolean) => void;
   onSelect: (sectionType: EditorSidebarKey) => void;
   onMove: (sectionType: SectionType, direction: -1 | 1) => void;
@@ -42,6 +43,7 @@ export function SectionOrderEditor({
   sectionOrder,
   selectedSidebarKey,
   dirtyKeys,
+  inheritanceState,
   onToggle,
   onSelect,
   onMove
@@ -55,14 +57,19 @@ export function SectionOrderEditor({
         <h2>Menu</h2>
       </div>
       <ol className={styles.list}>
-        <li
-          className={getItemClassName(isDocumentSelected, isDocumentDirty)}
-          onClick={() => onSelect("document")}
-        >
-          <span className={styles.selectLabel}>
-            Document
-            {isDocumentDirty ? <span className={styles.dirtyMarker} /> : null}
-          </span>
+        <li className={getItemClassName(isDocumentSelected, isDocumentDirty)}>
+          <button
+            type="button"
+            className={styles.selectButton}
+            aria-current={isDocumentSelected ? "true" : undefined}
+            onClick={() => onSelect("document")}
+          >
+            <span className={styles.selectLabel}>
+              Document
+              {isDocumentDirty ? <span className={styles.dirtyMarker} /> : null}
+              <span className={styles.sourceBadge}>{inheritanceState.document ?? "baseline"}</span>
+            </span>
+          </button>
         </li>
         {SIDEBAR_SECTION_TYPES.map((sectionType) => {
           const enabled = enabledSections.includes(sectionType);
@@ -75,15 +82,19 @@ export function SectionOrderEditor({
           const itemClassName = getItemClassName(isSelected, isDirty);
 
           return (
-            <li
-              key={sectionType}
-              className={itemClassName}
-              onClick={() => onSelect(sectionType)}
-            >
-              <span className={styles.selectLabel}>
-                {label}
-                {isDirty ? <span className={styles.dirtyMarker} /> : null}
-              </span>
+            <li key={sectionType} className={itemClassName}>
+              <button
+                type="button"
+                className={styles.selectButton}
+                aria-current={isSelected ? "true" : undefined}
+                onClick={() => onSelect(sectionType)}
+              >
+                <span className={styles.selectLabel}>
+                  <span>{label}</span>
+                  {isDirty ? <span className={styles.dirtyMarker} /> : null}
+                  <span className={styles.sourceBadge}>{inheritanceState[sectionType] ?? "baseline"}</span>
+                </span>
+              </button>
               <div className={styles.controls}>
                 <input
                   type="checkbox"

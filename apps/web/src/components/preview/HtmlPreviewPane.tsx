@@ -248,8 +248,8 @@ export function HtmlPreviewPane({
             </button>
           </div>
         </div>
-        <span className={styles.statusMeta}>
-          {pdfPreviewState === "loading" ? "Compiling preview... " : null}
+        <span className={styles.statusMeta} aria-live="polite">
+          {pdfPreviewState === "loading" ? "Compiling Preview… " : null}
           {pdfPreview
             ? `${pdfPreview.compiler.engine} · ${
                 pdfPreview.compiler.available ? "available" : "unavailable"

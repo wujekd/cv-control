@@ -4,7 +4,10 @@ import styles from "./AppLayout.module.css";
 export function AppLayout() {
   return (
     <div className={styles.shell}>
-      <main className={styles.main}>
+      <a className={styles.skipLink} href="#main-content">
+        Skip to Editor
+      </a>
+      <main id="main-content" className={styles.main}>
         <Outlet />
       </main>
     </div>

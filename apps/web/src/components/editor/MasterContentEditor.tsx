@@ -71,11 +71,15 @@ function CompactUtilityButton({
 }
 
 interface MasterContentEditorProps {
+  canonicalProfile: CvProfile;
   profile: CvProfile;
   version: CvVersion;
   sectionType: SectionType;
+  sourceState: "baseline" | "inherited" | "custom";
   dirtyItemIds: string[];
-  onUpdateBasicsField: (field: keyof CvProfile["basics"], value: string) => void;
+  onUpdateCanonicalBasicsField: (field: keyof CvProfile["basics"], value: string) => void;
+  onUpdateVersionBasicsField: (field: keyof CvProfile["basics"], value: string | undefined) => void;
+  onClearVersionBasicsOverrides: () => void;
   onUpdateSummary: (value: string) => void;
   onUpdateSummaryLinkUrl: (value: string) => void;
   onUpdateEducationEntry: (id: string, patch: Partial<EducationEntry>) => void;
@@ -129,11 +133,15 @@ interface MasterContentEditorProps {
 }
 
 export function MasterContentEditor({
+  canonicalProfile,
   profile,
   version,
   sectionType,
+  sourceState,
   dirtyItemIds,
-  onUpdateBasicsField,
+  onUpdateCanonicalBasicsField,
+  onUpdateVersionBasicsField,
+  onClearVersionBasicsOverrides,
   onUpdateSummary,
   onUpdateSummaryLinkUrl,
   onUpdateEducationEntry,
@@ -160,6 +168,11 @@ export function MasterContentEditor({
 }: MasterContentEditorProps) {
   const [collapsedSkillGroups, setCollapsedSkillGroups] = useState<string[]>([]);
   const isDirtyItem = (itemId: string) => dirtyItemIds.includes(itemId);
+  const sourceBadge = (
+    <span className={sourceState === "custom" ? styles.customBadge : styles.sourceBadge}>
+      {sourceState}
+    </span>
+  );
 
   const toggleSkillGroupCollapsed = (groupId: string) => {
     setCollapsedSkillGroups((current) =>
@@ -220,29 +233,97 @@ export function MasterContentEditor({
   }
 
   if (sectionType === "personalInfo") {
+    const isBranch = Boolean(version.parentVersionId);
+    const basicsFields = [
+      { field: "fullName", label: "Full Name", type: "text", autoComplete: "name" },
+      { field: "location", label: "Location", type: "text", autoComplete: "address-level2" },
+      { field: "email", label: "Email", type: "email", autoComplete: "email" },
+      { field: "phone", label: "Phone Number", type: "tel", autoComplete: "tel" },
+      { field: "linkedIn", label: "LinkedIn", type: "url", autoComplete: "url" },
+      { field: "website", label: "Web Address", type: "url", autoComplete: "url" }
+    ] as const;
+    const basicsOverrides = version.contentOverrides?.basics ?? {};
+    const hasBasicsOverrides = Object.keys(basicsOverrides).length > 0;
+
     return (
       <section className={styles.panel}>
         <div className={styles.header}>
-          <h2>Master Personal Info</h2>
-          <p>These fields are always rendered in the header slot.</p>
+          <div className={styles.titleRow}>
+            <h2>Personal Info</h2>
+            {sourceBadge}
+          </div>
+          <p>Profile defaults are shared by every CV. Branches can override contact details when needed.</p>
         </div>
-        <div className={styles.grid}>
-          {([
-            { field: "fullName", label: "Full name" },
-            { field: "location", label: "Location" },
-            { field: "email", label: "Email" },
-            { field: "phone", label: "Phone" },
-            { field: "linkedIn", label: "LinkedIn" },
-            { field: "website", label: "Website" }
-          ] as const).map(({ field, label }) => (
-            <label key={field} className={styles.field}>
-              <span>{label}</span>
-              <input
-                value={profile.basics[field] ?? ""}
-                onChange={(event) => onUpdateBasicsField(field, event.target.value)}
-              />
-            </label>
-          ))}
+
+        <div className={styles.personalDataLayout}>
+          <section className={styles.personalZone} aria-labelledby="profile-defaults-title">
+            <div className={styles.zoneHeader}>
+              <h3 id="profile-defaults-title">Profile Defaults</h3>
+              <span>Shared</span>
+            </div>
+            <div className={styles.grid}>
+              {basicsFields.map(({ field, label, type, autoComplete }) => (
+                <label key={field} className={styles.field}>
+                  <span>{label}</span>
+                  <input
+                    name={`profile-${field}`}
+                    autoComplete={autoComplete}
+                    spellCheck={field === "email" ? false : undefined}
+                    type={type}
+                    value={canonicalProfile.basics[field] ?? ""}
+                    onChange={(event) => onUpdateCanonicalBasicsField(field, event.target.value)}
+                  />
+                </label>
+              ))}
+            </div>
+          </section>
+
+          {isBranch ? (
+            <section className={styles.personalZone} aria-labelledby="version-overrides-title">
+              <div className={styles.zoneHeader}>
+                <h3 id="version-overrides-title">This CV</h3>
+                <button
+                  type="button"
+                  className={styles.textButton}
+                  disabled={!hasBasicsOverrides}
+                  onClick={onClearVersionBasicsOverrides}
+                >
+                  Use Profile Defaults
+                </button>
+              </div>
+              <div className={styles.overrideGrid}>
+                {basicsFields.map(({ field, label, type, autoComplete }) => {
+                  const isOverridden = basicsOverrides[field] !== undefined;
+                  return (
+                    <label key={field} className={styles.overrideField}>
+                      <span className={styles.overrideToggle}>
+                        <input
+                          type="checkbox"
+                          checked={isOverridden}
+                          onChange={(event) => {
+                            onUpdateVersionBasicsField(
+                              field,
+                              event.target.checked ? profile.basics[field] ?? "" : undefined
+                            );
+                          }}
+                        />
+                        <span>{label}</span>
+                      </span>
+                      <input
+                        name={`version-${field}`}
+                        autoComplete={autoComplete}
+                        spellCheck={field === "email" ? false : undefined}
+                        type={type}
+                        disabled={!isOverridden}
+                        value={isOverridden ? basicsOverrides[field] ?? "" : canonicalProfile.basics[field] ?? ""}
+                        onChange={(event) => onUpdateVersionBasicsField(field, event.target.value)}
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
         </div>
       </section>
     );
@@ -252,8 +333,11 @@ export function MasterContentEditor({
     return (
       <section className={styles.panel}>
         <div className={styles.header}>
-          <h2>Master Summary</h2>
-          <p>Single text block that fills the summary slot when enabled.</p>
+          <div className={styles.titleRow}>
+            <h2>Summary Content</h2>
+            {sourceBadge}
+          </div>
+          <p>Shared summary text used by the selected CV.</p>
         </div>
         <textarea
           className={styles.textarea}
@@ -274,8 +358,11 @@ export function MasterContentEditor({
       <section className={styles.panel}>
         <div className={styles.headerWithAction}>
           <div>
-            <h2>Master Education</h2>
-            <p>Edit the pool of education items available to the CV version.</p>
+            <div className={styles.titleRow}>
+              <h2>Education Content</h2>
+              {sourceBadge}
+            </div>
+            <p>Edit the pool of education items available to this CV.</p>
           </div>
           <CompactAddButton label="Item" onClick={() => onAddEntry("education")} />
         </div>
@@ -373,8 +460,11 @@ export function MasterContentEditor({
       <section className={styles.panel}>
         <div className={styles.headerWithAction}>
           <div>
-            <h2>Master Experience</h2>
-            <p>Maintain more items than the one-page template can display, then swap them in per version.</p>
+            <div className={styles.titleRow}>
+              <h2>Experience Content</h2>
+              {sourceBadge}
+            </div>
+            <p>Maintain the experience pool and choose which entries this CV shows.</p>
           </div>
           <CompactAddButton label="Item" onClick={() => onAddEntry("experience")} />
         </div>
@@ -472,8 +562,11 @@ export function MasterContentEditor({
       <section className={styles.panel}>
         <div className={styles.headerWithAction}>
           <div>
-            <h2>Master Projects</h2>
-            <p>The selected projects fill the fixed project slot in the current version.</p>
+            <div className={styles.titleRow}>
+              <h2>Project Content</h2>
+              {sourceBadge}
+            </div>
+            <p>The selected projects fill the project slot in this CV.</p>
           </div>
           <CompactAddButton label="Item" onClick={() => onAddEntry("projects")} />
         </div>
@@ -578,7 +671,10 @@ export function MasterContentEditor({
     <section className={styles.panel}>
       <div className={styles.headerWithAction}>
         <div>
-          <h2>Master Skills</h2>
+          <div className={styles.titleRow}>
+            <h2>Skills Content</h2>
+            {sourceBadge}
+          </div>
           <p>Skills are selectable at item level inside grouped categories.</p>
         </div>
         <CompactAddButton label="Group" onClick={() => onAddEntry("skills")} />

@@ -1,12 +1,15 @@
 .panel {
   display: grid;
-  gap: 0.8rem;
-  padding: 0.85rem;
+  gap: 0.65rem;
+  padding: 0.72rem;
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
   background: var(--color-panel);
+  box-shadow: var(--shadow-panel);
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 .header h2,
@@ -16,11 +19,46 @@
   margin: 0;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.titleRow h2 {
+  font-size: 1.08rem;
+}
+
+.titleRow h2 {
+  min-width: 0;
+}
+
+.sourceBadge,
+.customBadge {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.46rem;
+  border: 1px solid rgba(118, 130, 145, 0.22);
+  border-radius: 999px;
+  background: rgba(18, 30, 40, 0.04);
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.customBadge {
+  border-color: rgba(14, 90, 99, 0.28);
+  background: rgba(14, 90, 99, 0.1);
+  color: #0e5a63;
+}
+
 .header p,
 .headerWithAction p {
   margin-top: 0.16rem;
   color: var(--color-muted);
-  font-size: 0.84rem;
+  font-size: 0.76rem;
 }
 
 .headerWithAction {
@@ -51,6 +89,11 @@
   white-space: nowrap;
 }
 
+.addButton:hover,
+.utilityButton:hover {
+  background: #f6faf8;
+}
+
 .buttonGlyph {
   font-weight: 700;
   line-height: 1;
@@ -64,6 +107,11 @@
   color: var(--color-danger);
   font-size: 0.8rem;
   line-height: 1;
+}
+
+.removeButton:hover {
+  border-color: rgba(164, 65, 47, 0.44);
+  background: rgba(164, 65, 47, 0.08);
 }
 
 .utilityButton {
@@ -81,25 +129,26 @@
 
 .stack {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .card {
   display: grid;
-  gap: 0.6rem;
-  padding: 0.7rem;
+  gap: 0.5rem;
+  padding: 0.58rem;
   border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
   background: var(--color-panel-raised);
   min-width: 0;
 }
 
 .dirtyCard {
-  border-color: rgba(190, 127, 33, 0.56);
-  background: rgba(190, 127, 33, 0.1);
+  border-color: rgba(183, 121, 31, 0.56);
+  background: rgba(183, 121, 31, 0.1);
   box-shadow:
-    inset 4px 0 0 rgba(190, 127, 33, 0.9),
-    inset 0 0 0 1px rgba(190, 127, 33, 0.14);
+    inset 4px 0 0 var(--color-warning),
+    inset 0 0 0 1px rgba(183, 121, 31, 0.14);
 }
 
 .inlineActions {
@@ -129,7 +178,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.55rem;
+  gap: 0.44rem;
   min-width: 0;
 }
 
@@ -140,7 +189,92 @@
 }
 
 .field span {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
+  color: var(--color-muted);
+}
+
+.personalDataLayout {
+  display: grid;
+  gap: 1rem;
+}
+
+.personalZone {
+  display: grid;
+  gap: 0.875rem;
+  min-width: 0;
+  padding-block: 0.25rem;
+}
+
+.zoneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.zoneHeader h3 {
+  margin: 0;
+  min-width: 0;
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.zoneHeader span {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.textButton {
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.25rem 0;
+}
+
+.textButton:disabled {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.textButton:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.overrideGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.overrideField {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.overrideToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.overrideToggle input {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.overrideToggle span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .inlineInput {
@@ -158,6 +292,7 @@
   min-height: 4.5rem;
   resize: vertical;
   min-width: 0;
+  line-height: 1.45;
 }
 
 .bullets {
@@ -205,6 +340,7 @@
   gap: 0.45rem;
   padding: 0.58rem;
   border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
   background: rgba(18, 30, 40, 0.03);
   min-width: 0;
 }
@@ -273,4 +409,30 @@
   align-items: center;
   gap: 0.35rem;
   flex: 0 0 auto;
+}
+
+@media (max-width: 860px) {
+  .overrideGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .headerWithAction,
+  .inlineActions,
+  .skillGroupHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .itemActionCluster,
+  .skillGroupActions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .bulletRow,
+  .skillRow {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,9 +1,11 @@
 .panel {
   display: grid;
-  gap: 0.65rem;
-  padding: 0.85rem;
+  gap: 0.55rem;
+  padding: 0.7rem;
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
   background: var(--color-panel);
+  box-shadow: var(--shadow-panel);
 }
 
 .header h2,
@@ -11,9 +13,13 @@
   margin: 0;
 }
 
+.header h2 {
+  font-size: 1.05rem;
+}
+
 .list {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.32rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -27,55 +33,94 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.55rem;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  padding: 0.22rem;
   border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
   background: var(--color-panel-raised);
-  cursor: pointer;
 }
 
 .selectedItem {
   border-color: var(--color-accent);
+  background: var(--color-accent-soft);
   box-shadow: inset 0 0 0 1px var(--color-accent);
 }
 
 .dirtyItem {
   border-color: rgba(190, 127, 33, 0.52);
-  background: rgba(190, 127, 33, 0.12);
-  box-shadow: inset 3px 0 0 rgba(190, 127, 33, 0.8);
+  background: rgba(183, 121, 31, 0.12);
+  box-shadow: inset 3px 0 0 var(--color-warning);
 }
 
 .selectedDirtyItem {
-  border-color: rgba(190, 127, 33, 0.75);
+  border-color: rgba(183, 121, 31, 0.75);
   box-shadow:
-    inset 4px 0 0 rgba(190, 127, 33, 0.92),
-    inset 0 0 0 1px rgba(190, 127, 33, 0.65),
+    inset 4px 0 0 var(--color-warning),
+    inset 0 0 0 1px rgba(183, 121, 31, 0.65),
     inset 0 0 0 2px rgba(14, 90, 99, 0.22);
-  background: rgba(190, 127, 33, 0.15);
+  background: rgba(183, 121, 31, 0.15);
+}
+
+.selectButton {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 1.86rem;
+  padding: 0.2rem 0.28rem;
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+}
+
+.selectButton:hover {
+  border-color: transparent;
+  background: rgba(11, 107, 96, 0.06);
 }
 
 .selectLabel {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.28rem;
+  min-width: 0;
   font: inherit;
   color: inherit;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   text-align: left;
 }
 
+.selectLabel > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .dirtyMarker {
-  width: 0.38rem;
-  height: 0.38rem;
+  width: 0.34rem;
+  height: 0.34rem;
   border-radius: 999px;
-  background: #be7f21;
+  background: var(--color-warning);
   flex: 0 0 auto;
+}
+
+.sourceBadge {
+  flex: 0 0 auto;
+  padding: 0.14rem 0.32rem;
+  border: 1px solid rgba(118, 130, 145, 0.2);
+  background: rgba(18, 30, 40, 0.04);
+  color: var(--color-muted);
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .controls {
   display: flex;
   align-items: center;
-  gap: 0.38rem;
+  gap: 0.3rem;
 }
 
 .controls input {
@@ -84,11 +129,12 @@
 
 .arrowStack {
   display: grid;
-  gap: 0.18rem;
+  gap: 0.14rem;
 }
 
 .arrowStack button {
-  min-width: 1.7rem;
-  padding: 0.08rem 0.3rem;
+  min-width: 1.45rem;
+  padding: 0.04rem 0.22rem;
   line-height: 1;
+  font-size: 0.78rem;
 }

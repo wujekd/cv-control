@@ -78,6 +78,7 @@ function TokenField({
 interface DocumentSettingsEditorProps {
   version: CvVersion;
   template: DocumentTemplate;
+  sourceState: "baseline" | "inherited" | "custom";
   hasUnsavedChanges: boolean;
   saveState: "idle" | "saving" | "saved" | "error";
   onUpdateTypography: (field: keyof DocumentTypographySettings, value: number | null) => void;
@@ -88,6 +89,7 @@ interface DocumentSettingsEditorProps {
 export function DocumentSettingsEditor({
   version,
   template,
+  sourceState,
   hasUnsavedChanges,
   saveState,
   onUpdateTypography,
@@ -103,9 +105,12 @@ export function DocumentSettingsEditor({
       <header className={styles.header}>
         <div>
           <h2>Document Settings</h2>
-          <p>Version-specific style overrides layered on top of the active template.</p>
+          <p>Template and style settings for this CV.</p>
         </div>
         <div className={styles.headerActions}>
+          <span className={sourceState === "custom" ? styles.customBadge : styles.sourceBadge}>
+            {sourceState}
+          </span>
           <div className={styles.templateMeta}>
             <span>Template</span>
             <strong>{template.name}</strong>
@@ -117,7 +122,7 @@ export function DocumentSettingsEditor({
               onClick={onSave}
               disabled={saveState === "saving"}
             >
-              {saveState === "saving" ? "Saving..." : "Save"}
+              {saveState === "saving" ? "Saving…" : "Save"}
             </button>
           ) : null}
         </div>

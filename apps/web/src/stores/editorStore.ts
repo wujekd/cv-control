@@ -12,7 +12,15 @@ import type {
   SectionType,
   SkillGroup
 } from "@cv-control/shared";
-import { SECTION_TYPES } from "@cv-control/shared";
+import {
+  markDocumentStyleLocal,
+  markSectionLocal,
+  markSectionOrderLocal,
+  markSummaryLocal,
+  resolveCvProfileForVersion,
+  resolveCvVersionInheritance,
+  SECTION_TYPES
+} from "@cv-control/shared";
 import { create } from "zustand";
 import { CvApiClient, type PdfPreviewResponse } from "../services/api/client";
 import type { EditorSidebarKey } from "../types/editor";
@@ -42,12 +50,15 @@ interface EditorStore {
   toggleDiagnostics: () => void;
   closeDiagnostics: () => void;
   setActiveVersion: (versionId: string) => void;
+  renameVersion: (versionId: string, name: string) => void;
   setSelectedSidebarKey: (sectionType: EditorSidebarKey) => void;
   toggleSection: (sectionType: SectionType, enabled: boolean) => void;
   moveSection: (sectionType: SectionType, direction: -1 | 1) => void;
   updateDocumentTypography: (field: keyof DocumentTypographySettings, value: number | null) => void;
   updateDocumentSpacing: (field: keyof DocumentSpacingSettings, value: number | null) => void;
-  updateBasicsField: (field: keyof CvProfile["basics"], value: string) => void;
+  updateCanonicalBasicsField: (field: keyof CvProfile["basics"], value: string) => void;
+  updateVersionBasicsField: (field: keyof CvProfile["basics"], value: string | undefined) => void;
+  clearVersionBasicsOverrides: () => void;
   updateSummary: (value: string) => void;
   updateSummaryLinkUrl: (value: string) => void;
   updateEducationEntry: (id: string, patch: Partial<EducationEntry>) => void;
@@ -183,6 +194,13 @@ function normalizeDocumentStyleOverrides(
   };
 }
 
+function normalizeBasicsOverrides(
+  overrides: Partial<CvProfile["basics"]> | undefined
+): Partial<CvProfile["basics"]> | undefined {
+  const entries = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
+  return entries.length > 0 ? (Object.fromEntries(entries) as Partial<CvProfile["basics"]>) : undefined;
+}
+
 function findTrackableItemIdByBulletId(
   profile: CvProfile,
   sectionType: "education" | "experience" | "projects",
@@ -203,15 +221,24 @@ function findSkillGroupIdByItemId(profile: CvProfile, itemId: string): string | 
 }
 
 function findActiveVersion(state: Pick<EditorStore, "versions" | "activeVersionId">) {
-  return state.versions.find((version) => version.id === state.activeVersionId) ?? null;
+  if (!state.activeVersionId) {
+    return null;
+  }
+
+  return resolveCvVersionInheritance(state.versions, state.activeVersionId);
 }
 
 function updateActiveVersion(
   state: EditorStore,
   updater: (version: CvVersion) => CvVersion
 ): Pick<EditorStore, "versions"> {
+  const effectiveVersion = findActiveVersion(state);
+  if (!effectiveVersion) {
+    return { versions: state.versions };
+  }
+
   const versions = state.versions.map((version) =>
-    version.id === state.activeVersionId ? updater(version) : version
+    version.id === state.activeVersionId ? updater(effectiveVersion) : version
   );
   return { versions };
 }
@@ -221,13 +248,13 @@ function updateVersionSection(
   sectionType: SectionType,
   updater: (section: CvVersion["sections"][SectionType]) => CvVersion["sections"][SectionType]
 ): CvVersion {
-  return {
+  return markSectionLocal({
     ...version,
     sections: {
       ...version.sections,
       [sectionType]: updater(version.sections[sectionType])
     }
-  };
+  }, sectionType);
 }
 
 function updateBullets<T extends { id: string; bullets?: BulletPoint[] }>(
@@ -386,6 +413,20 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     });
   },
 
+  renameVersion(versionId, name) {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      return;
+    }
+
+    set((state) => ({
+      versions: state.versions.map((version) =>
+        version.id === versionId ? { ...version, name: trimmedName } : version
+      ),
+      saveState: "idle"
+    }));
+  },
+
   setSelectedSidebarKey(sectionType) {
     set({ selectedSidebarKey: sectionType });
   },
@@ -408,7 +449,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         : nextVersion.sectionOrder.filter((item) => item !== sectionType);
 
       return updateActiveVersion(state, () => ({
-        ...nextVersion,
+        ...markSectionOrderLocal(nextVersion),
         sectionOrder: nextOrder
       }));
     });
@@ -431,7 +472,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       }
 
       return updateActiveVersion(state, () => ({
-        ...activeVersion,
+        ...markSectionOrderLocal(activeVersion),
         sectionOrder: moveInArray(activeVersion.sectionOrder, index, direction)
       }));
     });
@@ -462,7 +503,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
       return {
         ...updateActiveVersion(state, () => ({
-          ...activeVersion,
+          ...markDocumentStyleLocal(activeVersion),
           documentStyleOverrides
         })),
         dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["document"]),
@@ -492,7 +533,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
       return {
         ...updateActiveVersion(state, () => ({
-          ...activeVersion,
+          ...markDocumentStyleLocal(activeVersion),
           documentStyleOverrides
         })),
         dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["document"]),
@@ -501,7 +542,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     });
   },
 
-  updateBasicsField(field, value) {
+  updateCanonicalBasicsField(field, value) {
     set((state) => ({
       profile: state.profile
         ? {
@@ -517,36 +558,149 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
 
+  updateVersionBasicsField(field, value) {
+    set((state) => {
+      const activeVersion = findActiveVersion(state);
+      if (!activeVersion) {
+        return {};
+      }
+
+      const basics = normalizeBasicsOverrides({
+        ...activeVersion.contentOverrides?.basics,
+        [field]: value
+      });
+      const hasBasicsOverrides = Boolean(basics);
+
+      return {
+        ...updateActiveVersion(state, (version) => {
+          const { basics: _removedBasics, ...contentOverridesWithoutBasics } =
+            version.contentOverrides ?? {};
+
+          return {
+            ...version,
+            localOverrides: {
+              ...version.localOverrides,
+              basics: hasBasicsOverrides
+            },
+            contentOverrides: hasBasicsOverrides
+              ? {
+                  ...version.contentOverrides,
+                  basics
+                }
+              : contentOverridesWithoutBasics
+          };
+        }),
+        dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["personalInfo"]),
+        saveState: "idle"
+      };
+    });
+  },
+
+  clearVersionBasicsOverrides() {
+    set((state) => {
+      const activeVersion = findActiveVersion(state);
+      if (!activeVersion) {
+        return {};
+      }
+
+      return {
+        ...updateActiveVersion(state, (version) => {
+          const { basics: _removedBasics, ...contentOverrides } = version.contentOverrides ?? {};
+          return {
+            ...version,
+            localOverrides: {
+              ...version.localOverrides,
+              basics: false
+            },
+            contentOverrides
+          };
+        }),
+        dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["personalInfo"]),
+        saveState: "idle"
+      };
+    });
+  },
+
   updateSummary(value) {
-    set((state) => ({
-      profile: state.profile
-        ? {
-            ...state.profile,
-            summary: {
-              text: value,
-              linkUrl: state.profile.summary?.linkUrl
-            }
+    set((state) => {
+      if (!state.profile) {
+        return {};
+      }
+
+      const activeVersion = findActiveVersion(state);
+      if (activeVersion?.parentVersionId) {
+        const effectiveProfile = resolveCvProfileForVersion(state.profile, activeVersion);
+        return {
+          ...updateActiveVersion(state, (version) =>
+            markSummaryLocal({
+              ...version,
+              contentOverrides: {
+                ...version.contentOverrides,
+                summary: {
+                  text: value,
+                  linkUrl: effectiveProfile.summary?.linkUrl
+                }
+              }
+            })
+          ),
+          dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
+          saveState: "idle"
+        };
+      }
+
+      return {
+        profile: {
+          ...state.profile,
+          summary: {
+            text: value,
+            linkUrl: state.profile.summary?.linkUrl
           }
-        : null,
-      dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
-      saveState: "idle"
-    }));
+        },
+        dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
+        saveState: "idle"
+      };
+    });
   },
 
   updateSummaryLinkUrl(value) {
-    set((state) => ({
-      profile: state.profile
-        ? {
-            ...state.profile,
-            summary: {
-              text: state.profile.summary?.text ?? "",
-              linkUrl: value
-            }
+    set((state) => {
+      if (!state.profile) {
+        return {};
+      }
+
+      const activeVersion = findActiveVersion(state);
+      if (activeVersion?.parentVersionId) {
+        const effectiveProfile = resolveCvProfileForVersion(state.profile, activeVersion);
+        return {
+          ...updateActiveVersion(state, (version) =>
+            markSummaryLocal({
+              ...version,
+              contentOverrides: {
+                ...version.contentOverrides,
+                summary: {
+                  text: effectiveProfile.summary?.text ?? "",
+                  linkUrl: value
+                }
+              }
+            })
+          ),
+          dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
+          saveState: "idle"
+        };
+      }
+
+      return {
+        profile: {
+          ...state.profile,
+          summary: {
+            text: state.profile.summary?.text ?? "",
+            linkUrl: value
           }
-        : null,
-      dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
-      saveState: "idle"
-    }));
+        },
+        dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
+        saveState: "idle"
+      };
+    });
   },
 
   updateEducationEntry(id, patch) {
@@ -1310,8 +1464,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       await CvApiClient.saveProfile(state.profile);
       await Promise.all(state.versions.map((version) => CvApiClient.saveVersion(version)));
       set({ pdfPreviewState: "loading" });
+      const effectiveProfile = resolveCvProfileForVersion(state.profile, activeVersion);
       const preview = await CvApiClient.requestPdfPreview(
-        state.profile,
+        effectiveProfile,
         activeVersion,
         activeVersion.documentTemplateId
       );
@@ -1362,8 +1517,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     set({ pdfPreviewState: "loading" });
     try {
+      const effectiveProfile = resolveCvProfileForVersion(state.profile, activeVersion);
       const preview = await CvApiClient.requestPdfPreview(
-        state.profile,
+        effectiveProfile,
         activeVersion,
         activeVersion.documentTemplateId
       );

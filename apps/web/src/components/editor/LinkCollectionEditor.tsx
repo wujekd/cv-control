@@ -50,16 +50,21 @@ export function LinkCollectionEditor({
               <label className={styles.field}>
                 <span>Label</span>
                 <input
+                  name={`link-label-${link.id}`}
+                  autoComplete="off"
                   value={link.label}
-                  placeholder="GitHub"
+                  placeholder="GitHub…"
                   onChange={(event) => onUpdateLink(link.id, { label: event.target.value })}
                 />
               </label>
               <label className={styles.field}>
                 <span>URL</span>
                 <input
+                  name={`link-url-${link.id}`}
+                  type="url"
+                  autoComplete="url"
                   value={link.url}
-                  placeholder="github.com/username/repo"
+                  placeholder="github.com/username/repo…"
                   onChange={(event) => onUpdateLink(link.id, { url: event.target.value })}
                 />
               </label>
