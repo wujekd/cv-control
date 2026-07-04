@@ -1,6 +1,13 @@
 import {
   buildRenderableCv,
+  cloneVersionBodySchema,
   createInheritedLocalOverrides,
+  cvProfileSchema,
+  cvVersionDraftSchema,
+  cvVersionSchema,
+  jobApplicationDraftSchema,
+  jobApplicationSchema,
+  renderRequestBodySchema,
   type CvProfile,
   type CvVersion,
   type JobApplication,
@@ -9,6 +16,7 @@ import {
 import cors from "cors";
 import express from "express";
 import { openDatabase } from "./db/sqlite";
+import { errorHandler, HttpError, validateBody } from "./middleware/errorHandler";
 import { CvProfileSqliteRepository } from "./repositories/CvProfileSqliteRepository";
 import { CvVersionSqliteRepository } from "./repositories/CvVersionSqliteRepository";
 import { DocumentTemplateRepository } from "./repositories/DocumentTemplateRepository";
@@ -43,7 +51,7 @@ export function createApp() {
     response.json(bootstrapService.getBootstrapPayload());
   });
 
-  app.put("/api/profile", (request, response) => {
+  app.put("/api/profile", validateBody(cvProfileSchema), (request, response) => {
     const profile = request.body as CvProfile;
     profileRepository.save({
       ...profile,
@@ -55,7 +63,7 @@ export function createApp() {
     response.status(204).end();
   });
 
-  app.put("/api/versions/:id", (request, response) => {
+  app.put("/api/versions/:id", validateBody(cvVersionSchema), (request, response) => {
     const version = request.body as CvVersion;
     versionRepository.save({
       ...version,
@@ -64,7 +72,7 @@ export function createApp() {
     response.status(204).end();
   });
 
-  app.post("/api/versions", (request, response) => {
+  app.post("/api/versions", validateBody(cvVersionDraftSchema), (request, response) => {
     const draft = request.body as Partial<CvVersion>;
     const now = new Date().toISOString();
     const version: CvVersion = {
@@ -78,11 +86,10 @@ export function createApp() {
     response.status(201).json(version);
   });
 
-  app.post("/api/versions/:id/clone", (request, response) => {
-    const existing = versionRepository.get(request.params.id);
+  app.post("/api/versions/:id/clone", validateBody(cloneVersionBodySchema), (request, response) => {
+    const existing = versionRepository.get(String(request.params.id));
     if (!existing) {
-      response.status(404).json({ message: "Version not found." });
-      return;
+      throw new HttpError(404, "Version not found.");
     }
 
     const now = new Date().toISOString();
@@ -102,22 +109,20 @@ export function createApp() {
   app.delete("/api/versions/:id", (request, response) => {
     const existing = versionRepository.get(request.params.id);
     if (!existing) {
-      response.status(404).json({ message: "Version not found." });
-      return;
+      throw new HttpError(404, "Version not found.");
     }
 
     const children = versionRepository.listChildren(existing.id);
     if (children.length > 0) {
       const childNames = children.map((child) => `"${child.name}"`).join(", ");
-      response.status(409).json({
-        message: `Cannot delete: ${childNames} inherit${children.length === 1 ? "s" : ""} from this version. Delete the branches first.`
-      });
-      return;
+      throw new HttpError(
+        409,
+        `Cannot delete: ${childNames} inherit${children.length === 1 ? "s" : ""} from this version. Delete the branches first.`
+      );
     }
 
     if (versionRepository.countByProfile(existing.profileId) <= 1) {
-      response.status(409).json({ message: "Cannot delete the only remaining version." });
-      return;
+      throw new HttpError(409, "Cannot delete the only remaining version.");
     }
 
     applicationRepository.clearVersionLink(existing.id);
@@ -129,7 +134,7 @@ export function createApp() {
     response.json(applicationRepository.list());
   });
 
-  app.post("/api/applications", (request, response) => {
+  app.post("/api/applications", validateBody(jobApplicationDraftSchema), (request, response) => {
     const draft = request.body as JobApplicationDraft;
     const now = new Date().toISOString();
     const application: JobApplication = {
@@ -148,11 +153,10 @@ export function createApp() {
     response.status(201).json(application);
   });
 
-  app.put("/api/applications/:id", (request, response) => {
-    const existing = applicationRepository.get(request.params.id);
+  app.put("/api/applications/:id", validateBody(jobApplicationSchema), (request, response) => {
+    const existing = applicationRepository.get(String(request.params.id));
     if (!existing) {
-      response.status(404).json({ message: "Application not found." });
-      return;
+      throw new HttpError(404, "Application not found.");
     }
 
     const application = request.body as JobApplication;
@@ -168,42 +172,53 @@ export function createApp() {
   app.delete("/api/applications/:id", (request, response) => {
     const deleted = applicationRepository.delete(request.params.id);
     if (!deleted) {
-      response.status(404).json({ message: "Application not found." });
-      return;
+      throw new HttpError(404, "Application not found.");
     }
     response.status(204).end();
   });
 
-  app.post("/api/render/pdf-preview", async (request, response) => {
-    const { profile, version, templateId } = request.body as {
-      profile: CvProfile;
-      version: CvVersion;
-      templateId: string;
-    };
-    const template = templateRepository.get(templateId);
-    if (!template) {
-      response.status(400).json({ message: "Unknown template." });
-      return;
+  app.post(
+    "/api/render/pdf-preview",
+    validateBody(renderRequestBodySchema),
+    async (request, response, next) => {
+      try {
+        const { profile, version, templateId } = request.body as {
+          profile: CvProfile;
+          version: CvVersion;
+          templateId: string;
+        };
+        const template = templateRepository.get(templateId);
+        if (!template) {
+          throw new HttpError(400, "Unknown template.");
+        }
+
+        const result = await pdfPreviewService.renderPreview(profile, version, template);
+        response.json(result);
+      } catch (error) {
+        next(error);
+      }
     }
+  );
 
-    const result = await pdfPreviewService.renderPreview(profile, version, template);
-    response.json(result);
-  });
+  app.post(
+    "/api/render/html-preview",
+    validateBody(renderRequestBodySchema),
+    (request, response) => {
+      const { profile, version, templateId } = request.body as {
+        profile: CvProfile;
+        version: CvVersion;
+        templateId: string;
+      };
+      const template = templateRepository.get(templateId);
+      if (!template) {
+        throw new HttpError(400, "Unknown template.");
+      }
 
-  app.post("/api/render/html-preview", (request, response) => {
-    const { profile, version, templateId } = request.body as {
-      profile: CvProfile;
-      version: CvVersion;
-      templateId: string;
-    };
-    const template = templateRepository.get(templateId);
-    if (!template) {
-      response.status(400).json({ message: "Unknown template." });
-      return;
+      response.json(buildRenderableCv(profile, version, template));
     }
+  );
 
-    response.json(buildRenderableCv(profile, version, template));
-  });
+  app.use(errorHandler);
 
   return app;
 }

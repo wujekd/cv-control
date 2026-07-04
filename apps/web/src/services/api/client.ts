@@ -39,8 +39,17 @@ async function requestJson<T>(input: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "Request failed");
+    const text = await response.text();
+    let message = text || "Request failed";
+    try {
+      const parsed = JSON.parse(text) as { message?: string };
+      if (parsed.message) {
+        message = parsed.message;
+      }
+    } catch {
+      // Non-JSON error body; keep the raw text.
+    }
+    throw new Error(message);
   }
 
   if (response.status === 204) {

@@ -10,3 +10,4 @@ export * from "./logic/layoutDiagnostics";
 export * from "./logic/links";
 export * from "./logic/sampleData";
 export * from "./logic/versionInheritance";
+export * from "./schemas";
