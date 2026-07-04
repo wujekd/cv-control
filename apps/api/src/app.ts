@@ -99,6 +99,32 @@ export function createApp() {
     response.status(201).json(cloned);
   });
 
+  app.delete("/api/versions/:id", (request, response) => {
+    const existing = versionRepository.get(request.params.id);
+    if (!existing) {
+      response.status(404).json({ message: "Version not found." });
+      return;
+    }
+
+    const children = versionRepository.listChildren(existing.id);
+    if (children.length > 0) {
+      const childNames = children.map((child) => `"${child.name}"`).join(", ");
+      response.status(409).json({
+        message: `Cannot delete: ${childNames} inherit${children.length === 1 ? "s" : ""} from this version. Delete the branches first.`
+      });
+      return;
+    }
+
+    if (versionRepository.countByProfile(existing.profileId) <= 1) {
+      response.status(409).json({ message: "Cannot delete the only remaining version." });
+      return;
+    }
+
+    applicationRepository.clearVersionLink(existing.id);
+    versionRepository.delete(existing.id);
+    response.status(204).end();
+  });
+
   app.get("/api/applications", (_request, response) => {
     response.json(applicationRepository.list());
   });

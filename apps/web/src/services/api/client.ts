@@ -69,6 +69,12 @@ export class CvApiClient {
     });
   }
 
+  static deleteVersion(versionId: string) {
+    return requestJson<void>(`/versions/${versionId}`, {
+      method: "DELETE"
+    });
+  }
+
   static cloneVersion(versionId: string, name: string) {
     return requestJson<CvVersion>(`/versions/${versionId}/clone`, {
       method: "POST",

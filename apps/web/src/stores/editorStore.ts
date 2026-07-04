@@ -108,6 +108,7 @@ interface EditorStore {
   toggleBulletSelection: (sectionType: "education" | "experience" | "projects", bulletId: string) => void;
   persistDrafts: () => Promise<void>;
   cloneActiveVersion: () => Promise<void>;
+  deleteVersion: (versionId: string) => Promise<void>;
   requestPdfPreview: () => Promise<void>;
 }
 
@@ -1506,6 +1507,41 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     } catch (error) {
       set({
         errorMessage: error instanceof Error ? error.message : "Clone failed"
+      });
+    }
+  },
+
+  async deleteVersion(versionId) {
+    const state = get();
+    if (state.versions.length <= 1) {
+      return;
+    }
+
+    try {
+      await CvApiClient.deleteVersion(versionId);
+      useApplicationsStore.getState().clearVersionLinks(versionId);
+      set((current) => {
+        const versions = current.versions.filter((version) => version.id !== versionId);
+        const savedVersions = current.savedVersions.filter(
+          (version) => version.id !== versionId
+        );
+        const activeVersionId =
+          current.activeVersionId === versionId
+            ? versions[0]?.id ?? null
+            : current.activeVersionId;
+        return {
+          versions,
+          savedVersions,
+          activeVersionId,
+          errorMessage: null,
+          pdfPreview: current.pdfPreviewVersionId === versionId ? null : current.pdfPreview,
+          pdfPreviewVersionId:
+            current.pdfPreviewVersionId === versionId ? null : current.pdfPreviewVersionId
+        };
+      });
+    } catch (error) {
+      set({
+        errorMessage: error instanceof Error ? error.message : "Delete failed"
       });
     }
   },

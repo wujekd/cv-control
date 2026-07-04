@@ -29,6 +29,28 @@ export class CvVersionSqliteRepository {
     return row ? (JSON.parse(row.data_json) as CvVersion) : null;
   }
 
+  listChildren(parentVersionId: string): CvVersion[] {
+    const rows = this.database
+      .prepare(
+        "SELECT id, profile_id, name, data_json FROM cv_versions WHERE json_extract(data_json, '$.parentVersionId') = ?"
+      )
+      .all(parentVersionId) as CvVersionRow[];
+
+    return rows.map((row) => JSON.parse(row.data_json) as CvVersion);
+  }
+
+  countByProfile(profileId: string): number {
+    const row = this.database
+      .prepare("SELECT COUNT(*) AS count FROM cv_versions WHERE profile_id = ?")
+      .get(profileId) as { count: number };
+    return row.count;
+  }
+
+  delete(versionId: string): boolean {
+    const result = this.database.prepare("DELETE FROM cv_versions WHERE id = ?").run(versionId);
+    return result.changes > 0;
+  }
+
   save(version: CvVersion): void {
     const statement = this.database.prepare(`
       INSERT INTO cv_versions (id, profile_id, name, data_json, created_at, updated_at)

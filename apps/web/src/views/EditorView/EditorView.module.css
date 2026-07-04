@@ -135,6 +135,29 @@
   font-size: 1.05rem;
 }
 
+.versionHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.versionHeaderActions button {
+  padding: 0.32rem 0.55rem;
+  font-size: 0.78rem;
+}
+
+.deleteVersionButton {
+  background: transparent;
+  border-color: rgba(163, 58, 42, 0.4);
+  color: var(--color-danger);
+}
+
+.deleteVersionButton:disabled {
+  border-color: var(--color-border-soft);
+  color: var(--color-muted);
+}
+
 .versionHeader p,
 .versionActions span {
   color: var(--color-muted);

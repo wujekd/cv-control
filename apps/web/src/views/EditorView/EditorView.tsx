@@ -6,7 +6,7 @@ import {
   type CvVersion
 } from "@cv-control/shared";
 import type { CSSProperties } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DocumentSettingsEditor } from "../../components/editor/DocumentSettingsEditor";
 import { MasterContentEditor } from "../../components/editor/MasterContentEditor";
@@ -151,6 +151,7 @@ export function EditorView() {
     toggleBulletSelection,
     persistDrafts,
     cloneActiveVersion,
+    deleteVersion,
     requestPdfPreview
   } = useEditorStore();
   const [htmlOverflowSections, setHtmlOverflowSections] = useState<string[]>([]);
@@ -224,13 +225,15 @@ export function EditorView() {
     });
   }, []);
 
+  const handledParamVersionId = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (!params.versionId) {
+    if (!params.versionId || params.versionId === handledParamVersionId.current) {
       return;
     }
 
     const versionExists = versions.some((version) => version.id === params.versionId);
     if (versionExists) {
+      handledParamVersionId.current = params.versionId;
       setActiveVersion(params.versionId);
     }
   }, [params.versionId, setActiveVersion, versions]);
@@ -349,9 +352,25 @@ export function EditorView() {
             <div>
               <h2>Versions</h2>
             </div>
-            <button type="button" onClick={() => void cloneActiveVersion()}>
-              Branch
-            </button>
+            <div className={styles.versionHeaderActions}>
+              <button type="button" onClick={() => void cloneActiveVersion()}>
+                Branch
+              </button>
+              <button
+                type="button"
+                className={styles.deleteVersionButton}
+                disabled={versions.length <= 1}
+                onClick={() => {
+                  if (window.confirm(`Delete version "${activeVersion.name}"?`)) {
+                    void deleteVersion(activeVersion.id).then(() => {
+                      navigate("/editor");
+                    });
+                  }
+                }}
+              >
+                Delete
+              </button>
+            </div>
           </div>
           <div className={styles.versionList}>
             {versionTree.map((version) => {
