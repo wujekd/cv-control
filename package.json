@@ -10,7 +10,9 @@
     "dev:web": "npm run dev --workspace @cv-control/web",
     "dev:api": "npm run dev --workspace @cv-control/api",
     "build": "npm run build --workspace @cv-control/shared && npm run build --workspace @cv-control/api && npm run build --workspace @cv-control/web",
-    "test": "npm run test --workspace @cv-control/shared && npm run test --workspace @cv-control/api"
+    "test": "npm run test --workspace @cv-control/shared && npm run test --workspace @cv-control/api",
+    "dev:desktop": "npm run dev --workspace @cv-control/desktop",
+    "dist:desktop": "npm run build --workspace @cv-control/shared && npm run build --workspace @cv-control/api && npm run build:electron --workspace @cv-control/web && npm run dist --workspace @cv-control/desktop"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.8",

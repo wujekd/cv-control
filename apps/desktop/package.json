@@ -1,0 +1,20 @@
+{
+  "name": "@cv-control/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/main.mjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "npm run build && CV_DEV_SERVER_URL=http://localhost:5173 electron .",
+    "dist": "npm run build && node scripts/swap-abi.mjs electron && electron-builder --config electron-builder.yml && node scripts/swap-abi.mjs node"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0"
+  },
+  "devDependencies": {
+    "@cv-control/api": "0.1.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "esbuild": "^0.24.0"
+  }
+}

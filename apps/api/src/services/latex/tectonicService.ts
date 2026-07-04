@@ -43,7 +43,8 @@ async function resolveTectonicBinary(): Promise<string> {
 
 async function getTectonicCacheDir(): Promise<string> {
   const serviceDir = path.dirname(fileURLToPath(import.meta.url));
-  const cacheDir = path.resolve(serviceDir, "../../../data/tectonic-cache");
+  const cacheDir =
+    process.env.TECTONIC_CACHE_DIR ?? path.resolve(serviceDir, "../../../data/tectonic-cache");
   await fs.mkdir(cacheDir, { recursive: true });
   return cacheDir;
 }

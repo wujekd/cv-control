@@ -4,6 +4,8 @@ dist
 *.log
 coverage
 apps/api/data
+dist-electron
+apps/desktop/release
 *.tsbuildinfo
 KickMe/
 .agents/

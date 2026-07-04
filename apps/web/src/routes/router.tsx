@@ -1,4 +1,4 @@
-import { Navigate, createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter, createHashRouter } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout";
 import { ApplicationsView } from "../views/ApplicationsView/ApplicationsView";
 import { EditorView } from "../views/EditorView/EditorView";
@@ -12,7 +12,12 @@ function RouteError() {
   );
 }
 
-export const router = createBrowserRouter([
+// Electron loads the app from file://, where browser-history routing breaks on
+// reload; hash routing sidesteps that. The preload-injected API URL doubles as
+// the "running inside Electron" signal.
+const createRouter = window.__CV_CONTROL_API_URL__ ? createHashRouter : createBrowserRouter;
+
+export const router = createRouter([
   {
     path: "/",
     element: <AppLayout />,

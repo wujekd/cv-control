@@ -7,7 +7,14 @@ import type {
   JobApplicationDraft
 } from "@cv-control/shared";
 
-const API_URL = "http://localhost:4000/api";
+declare global {
+  interface Window {
+    /** Injected by the Electron preload script with the embedded API's port. */
+    __CV_CONTROL_API_URL__?: string;
+  }
+}
+
+const API_URL = window.__CV_CONTROL_API_URL__ ?? "http://localhost:4000/api";
 
 export interface BootstrapResponse {
   profile: CvProfile;

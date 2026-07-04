@@ -1,0 +1,23 @@
+# Personal-use build config. To sign/notarize later, add `identity`,
+# `hardenedRuntime`, and `notarize` keys under `mac` — no code changes needed.
+appId: dev.wujek.cv-control
+productName: CV Control
+# npm workspaces hoist electron to the root node_modules where electron-builder
+# cannot discover it; keep this in sync with the devDependency version.
+electronVersion: 33.4.11
+directories:
+  output: release
+files:
+  - dist/**
+  - package.json
+extraResources:
+  - from: ../web/dist-electron
+    to: web
+mac:
+  target:
+    - target: dir
+      arch: arm64
+  identity: null
+# The dist script swaps the better-sqlite3 binary to the Electron ABI itself
+# (scripts/swap-abi.mjs); electron-builder's own rebuild fetched the wrong one.
+npmRebuild: false
