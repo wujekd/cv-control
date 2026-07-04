@@ -7,6 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -b",
     "start": "node dist/index.js",
+    "test": "vitest run",
     "import:cv": "node --import tsx/esm src/scripts/importCurrentCv.ts"
   },
   "dependencies": {
@@ -15,5 +16,9 @@
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2"
   }
 }

@@ -25,8 +25,12 @@ import { BootstrapService } from "./services/bootstrapService";
 import { PdfPreviewService } from "./services/render/pdfPreviewService";
 import { createId } from "./utils/ids";
 
-export function createApp() {
-  const database = openDatabase();
+export interface CreateAppOptions {
+  databasePath?: string;
+}
+
+export function createApp(options: CreateAppOptions = {}) {
+  const database = openDatabase(options.databasePath);
   const profileRepository = new CvProfileSqliteRepository(database);
   const versionRepository = new CvVersionSqliteRepository(database);
   const templateRepository = new DocumentTemplateRepository();
