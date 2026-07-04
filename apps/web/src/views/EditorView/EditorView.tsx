@@ -114,7 +114,6 @@ export function EditorView() {
     pdfPreview,
     pdfPreviewVersionId,
     pdfPreviewState,
-    bootstrap,
     closeDiagnostics,
     toggleDiagnostics,
     setActiveVersion,
@@ -224,10 +223,6 @@ export function EditorView() {
       return sectionTypes;
     });
   }, []);
-
-  useEffect(() => {
-    void bootstrap();
-  }, [bootstrap]);
 
   useEffect(() => {
     if (!params.versionId) {

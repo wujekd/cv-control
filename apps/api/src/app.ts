@@ -2,7 +2,9 @@ import {
   buildRenderableCv,
   createInheritedLocalOverrides,
   type CvProfile,
-  type CvVersion
+  type CvVersion,
+  type JobApplication,
+  type JobApplicationDraft
 } from "@cv-control/shared";
 import cors from "cors";
 import express from "express";
@@ -10,6 +12,7 @@ import { openDatabase } from "./db/sqlite";
 import { CvProfileSqliteRepository } from "./repositories/CvProfileSqliteRepository";
 import { CvVersionSqliteRepository } from "./repositories/CvVersionSqliteRepository";
 import { DocumentTemplateRepository } from "./repositories/DocumentTemplateRepository";
+import { JobApplicationSqliteRepository } from "./repositories/JobApplicationSqliteRepository";
 import { BootstrapService } from "./services/bootstrapService";
 import { PdfPreviewService } from "./services/render/pdfPreviewService";
 import { createId } from "./utils/ids";
@@ -19,10 +22,12 @@ export function createApp() {
   const profileRepository = new CvProfileSqliteRepository(database);
   const versionRepository = new CvVersionSqliteRepository(database);
   const templateRepository = new DocumentTemplateRepository();
+  const applicationRepository = new JobApplicationSqliteRepository(database);
   const bootstrapService = new BootstrapService(
     profileRepository,
     versionRepository,
-    templateRepository
+    templateRepository,
+    applicationRepository
   );
   const pdfPreviewService = new PdfPreviewService();
 
@@ -92,6 +97,55 @@ export function createApp() {
     };
     versionRepository.save(cloned);
     response.status(201).json(cloned);
+  });
+
+  app.get("/api/applications", (_request, response) => {
+    response.json(applicationRepository.list());
+  });
+
+  app.post("/api/applications", (request, response) => {
+    const draft = request.body as JobApplicationDraft;
+    const now = new Date().toISOString();
+    const application: JobApplication = {
+      id: createId("application"),
+      company: draft.company ?? "",
+      role: draft.role ?? "",
+      postingUrl: draft.postingUrl,
+      status: draft.status ?? "draft",
+      appliedAt: draft.appliedAt,
+      notes: draft.notes,
+      versionId: draft.versionId ?? null,
+      createdAt: now,
+      updatedAt: now
+    };
+    applicationRepository.save(application);
+    response.status(201).json(application);
+  });
+
+  app.put("/api/applications/:id", (request, response) => {
+    const existing = applicationRepository.get(request.params.id);
+    if (!existing) {
+      response.status(404).json({ message: "Application not found." });
+      return;
+    }
+
+    const application = request.body as JobApplication;
+    applicationRepository.save({
+      ...application,
+      id: existing.id,
+      createdAt: existing.createdAt,
+      updatedAt: new Date().toISOString()
+    });
+    response.status(204).end();
+  });
+
+  app.delete("/api/applications/:id", (request, response) => {
+    const deleted = applicationRepository.delete(request.params.id);
+    if (!deleted) {
+      response.status(404).json({ message: "Application not found." });
+      return;
+    }
+    response.status(204).end();
   });
 
   app.post("/api/render/pdf-preview", async (request, response) => {

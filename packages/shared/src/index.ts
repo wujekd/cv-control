@@ -1,3 +1,4 @@
+export * from "./types/application";
 export * from "./types/common";
 export * from "./types/cv";
 export * from "./types/version";

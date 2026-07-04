@@ -1,5 +1,6 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout";
+import { ApplicationsView } from "../views/ApplicationsView/ApplicationsView";
 import { EditorView } from "../views/EditorView/EditorView";
 
 function RouteError() {
@@ -24,6 +25,10 @@ export const router = createBrowserRouter([
       {
         path: "editor/:versionId?",
         element: <EditorView />
+      },
+      {
+        path: "applications",
+        element: <ApplicationsView />
       }
     ]
   }

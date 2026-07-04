@@ -24,6 +24,7 @@ import {
 import { create } from "zustand";
 import { CvApiClient, type PdfPreviewResponse } from "../services/api/client";
 import type { EditorSidebarKey } from "../types/editor";
+import { useApplicationsStore } from "./applicationsStore";
 
 type DirtyTrackableSectionType = "education" | "experience" | "projects" | "skills";
 type LinkableEntrySectionType = "education" | "experience" | "projects";
@@ -373,6 +374,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ isBootstrapping: true, errorMessage: null });
     try {
       const data = await CvApiClient.getBootstrap();
+      useApplicationsStore.getState().hydrate(data.applications ?? []);
       set({
         profile: data.profile,
         savedProfile: data.profile,

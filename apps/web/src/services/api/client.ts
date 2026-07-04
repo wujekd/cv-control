@@ -2,7 +2,9 @@ import type {
   BuildRenderableCvResult,
   CvProfile,
   CvVersion,
-  DocumentTemplate
+  DocumentTemplate,
+  JobApplication,
+  JobApplicationDraft
 } from "@cv-control/shared";
 
 const API_URL = "http://localhost:4000/api";
@@ -11,6 +13,7 @@ export interface BootstrapResponse {
   profile: CvProfile;
   versions: CvVersion[];
   templates: DocumentTemplate[];
+  applications: JobApplication[];
   activeVersionId: string;
 }
 
@@ -70,6 +73,30 @@ export class CvApiClient {
     return requestJson<CvVersion>(`/versions/${versionId}/clone`, {
       method: "POST",
       body: JSON.stringify({ name })
+    });
+  }
+
+  static listApplications() {
+    return requestJson<JobApplication[]>("/applications");
+  }
+
+  static createApplication(draft: JobApplicationDraft) {
+    return requestJson<JobApplication>("/applications", {
+      method: "POST",
+      body: JSON.stringify(draft)
+    });
+  }
+
+  static saveApplication(application: JobApplication) {
+    return requestJson<void>(`/applications/${application.id}`, {
+      method: "PUT",
+      body: JSON.stringify(application)
+    });
+  }
+
+  static deleteApplication(applicationId: string) {
+    return requestJson<void>(`/applications/${applicationId}`, {
+      method: "DELETE"
     });
   }
 
