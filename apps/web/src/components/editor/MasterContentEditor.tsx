@@ -167,6 +167,7 @@ export function MasterContentEditor({
   onToggleBulletSelection
 }: MasterContentEditorProps) {
   const [collapsedSkillGroups, setCollapsedSkillGroups] = useState<string[]>([]);
+  const [activeProjectDetailId, setActiveProjectDetailId] = useState<string | null>(null);
   const isDirtyItem = (itemId: string) => dirtyItemIds.includes(itemId);
   const sourceBadge = (
     <span className={sourceState === "custom" ? styles.customBadge : styles.sourceBadge}>
@@ -240,6 +241,7 @@ export function MasterContentEditor({
       { field: "email", label: "Email", type: "email", autoComplete: "email" },
       { field: "phone", label: "Phone Number", type: "tel", autoComplete: "tel" },
       { field: "linkedIn", label: "LinkedIn", type: "url", autoComplete: "url" },
+      { field: "github", label: "GitHub", type: "url", autoComplete: "url" },
       { field: "website", label: "Web Address", type: "url", autoComplete: "url" }
     ] as const;
     const basicsOverrides = version.contentOverrides?.basics ?? {};
@@ -558,111 +560,270 @@ export function MasterContentEditor({
   }
 
   if (sectionType === "projects") {
+    const selectedProjectIds = version.sections.projects.selectedItemIds;
+    const selectedProjects = selectedProjectIds
+      .map((projectId) => profile.projects.find((project) => project.id === projectId))
+      .filter((project): project is ProjectEntry => Boolean(project));
+    const availableProjects = profile.projects.filter((project) => !selectedProjectIds.includes(project.id));
+    const activeProject = activeProjectDetailId
+      ? profile.projects.find((project) => project.id === activeProjectDetailId) ?? null
+      : null;
+
     return (
       <section className={styles.panel}>
         <div className={styles.headerWithAction}>
           <div>
             <div className={styles.titleRow}>
-              <h2>Project Content</h2>
+              <h2>Project Selection</h2>
               {sourceBadge}
             </div>
-            <p>The selected projects fill the project slot in this CV.</p>
+            <p>Choose which saved projects belong in this CV. Project data stays in the profile pool.</p>
           </div>
-          <CompactAddButton label="Item" onClick={() => onAddEntry("projects")} />
+          <div className={styles.projectCountPill}>
+            {selectedProjects.length} of {profile.projects.length}
+          </div>
         </div>
-        <div className={styles.stack}>
-          {profile.projects.map((entry) => (
-            <article
-              key={entry.id}
-              className={isDirtyItem(entry.id) ? `${styles.card} ${styles.dirtyCard}` : styles.card}
-            >
-              <div className={styles.inlineActions}>
-                <strong className={styles.cardTitle}>{entry.title}</strong>
-                <div className={styles.itemActionCluster}>
-                  {renderItemSelectionControls(entry.id, "projects")}
-                  <CompactRemoveButton
-                    label="Remove project item"
-                    onClick={() => onRemoveEntry("projects", entry.id)}
-                  />
-                </div>
+
+        <div className={styles.projectPickerLayout}>
+          <section className={styles.projectColumn} aria-labelledby="selected-projects-title">
+            <div className={styles.subsectionHeader}>
+              <div className={styles.subsectionMeta}>
+                <h3 id="selected-projects-title">Included</h3>
+                <p className={styles.subsectionDescription}>Ordered exactly as they will appear.</p>
               </div>
-              <div className={styles.grid}>
-                <label className={styles.field}>
-                  <span>Title</span>
-                  <input
-                    value={entry.title}
-                    onChange={(event) => onUpdateProjectEntry(entry.id, { title: event.target.value })}
-                  />
-                </label>
-                <label className={styles.field}>
-                  <span>Technologies</span>
-                  <input
-                    value={entry.technologies.join(", ")}
-                    onChange={(event) =>
-                      onUpdateProjectEntry(entry.id, {
-                        technologies: event.target.value.split(",").map((item) => item.trim()).filter(Boolean)
-                      })
+            </div>
+            <div className={styles.projectSelectionList}>
+              {selectedProjects.length === 0 ? (
+                <p className={styles.emptyHint}>No projects selected for this CV.</p>
+              ) : null}
+              {selectedProjects.map((entry) => {
+                const selectedIndex = selectedProjectIds.indexOf(entry.id);
+                const selectedBulletCount = entry.bullets.filter((bullet) =>
+                  version.sections.projects.selectedBulletIds.includes(bullet.id)
+                ).length;
+
+                return (
+                  <article
+                    key={entry.id}
+                    className={
+                      isDirtyItem(entry.id)
+                        ? `${styles.projectSelectionCard} ${styles.dirtyCard}`
+                        : styles.projectSelectionCard
                     }
-                  />
-                </label>
+                  >
+                    <div className={styles.projectSelectionHeader}>
+                      <label className={styles.projectCheckLabel}>
+                        <input
+                          type="checkbox"
+                          checked
+                          aria-label={`Remove ${entry.title} from this CV`}
+                          onChange={() => onToggleItemSelection("projects", entry.id)}
+                        />
+                        <span>{entry.title}</span>
+                      </label>
+                      <div className={styles.projectCardActions}>
+                        <button
+                          type="button"
+                          aria-label="Move selected project up"
+                          disabled={selectedIndex === 0}
+                          onClick={() => onMoveSelectedItem("projects", entry.id, -1)}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Move selected project down"
+                          disabled={selectedIndex === selectedProjectIds.length - 1}
+                          onClick={() => onMoveSelectedItem("projects", entry.id, 1)}
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </div>
+                    <div className={styles.projectSummary}>
+                      {entry.technologies.length > 0 ? (
+                        <span>{entry.technologies.join(", ")}</span>
+                      ) : (
+                        <span>No technologies listed</span>
+                      )}
+                      <span>
+                        {selectedBulletCount} of {entry.bullets.length} bullets
+                      </span>
+                    </div>
+                    {entry.description ? <p className={styles.projectDescription}>{entry.description}</p> : null}
+                    <button
+                      type="button"
+                      className={styles.secondaryTextButton}
+                      onClick={() =>
+                        setActiveProjectDetailId((current) => (current === entry.id ? null : entry.id))
+                      }
+                    >
+                      {activeProjectDetailId === entry.id ? "Close details" : "Adjust details"}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className={styles.projectColumn} aria-labelledby="available-projects-title">
+            <div className={styles.subsectionHeader}>
+              <div className={styles.subsectionMeta}>
+                <h3 id="available-projects-title">Available</h3>
+                <p className={styles.subsectionDescription}>Saved project data not used by this CV.</p>
               </div>
-              <LinkCollectionEditor
-                title="Project title links"
-                description="Links rendered on the project title line."
-                links={entry.links}
-                onAddLink={() => onAddEntryLink("projects", entry.id)}
-                onUpdateLink={(linkId, patch) => onUpdateEntryLink("projects", entry.id, linkId, patch)}
-                onRemoveLink={(linkId) => onRemoveEntryLink("projects", entry.id, linkId)}
-              />
+            </div>
+            <div className={styles.projectSelectionList}>
+              {availableProjects.length === 0 ? (
+                <p className={styles.emptyHint}>Every saved project is included.</p>
+              ) : null}
+              {availableProjects.map((entry) => (
+                <article
+                  key={entry.id}
+                  className={
+                    isDirtyItem(entry.id)
+                      ? `${styles.projectSelectionCard} ${styles.dirtyCard}`
+                      : styles.projectSelectionCard
+                  }
+                >
+                  <div className={styles.projectSelectionHeader}>
+                    <label className={styles.projectCheckLabel}>
+                      <input
+                        type="checkbox"
+                        checked={false}
+                        aria-label={`Include ${entry.title} in this CV`}
+                        onChange={() => onToggleItemSelection("projects", entry.id)}
+                      />
+                      <span>{entry.title}</span>
+                    </label>
+                    <button
+                      type="button"
+                      className={styles.secondaryTextButton}
+                      onClick={() =>
+                        setActiveProjectDetailId((current) => (current === entry.id ? null : entry.id))
+                      }
+                    >
+                      {activeProjectDetailId === entry.id ? "Close" : "Details"}
+                    </button>
+                  </div>
+                  <div className={styles.projectSummary}>
+                    {entry.technologies.length > 0 ? (
+                      <span>{entry.technologies.join(", ")}</span>
+                    ) : (
+                      <span>No technologies listed</span>
+                    )}
+                    <span>{entry.bullets.length} bullets</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {activeProject ? (
+          <section className={styles.projectDetailPanel} aria-labelledby="project-details-title">
+            <div className={styles.headerWithAction}>
+              <div>
+                <div className={styles.titleRow}>
+                  <h3 id="project-details-title">{activeProject.title}</h3>
+                  <span className={styles.sourceBadge}>Profile data</span>
+                </div>
+                <p>
+                  Use this only when the saved project needs a small correction. Inclusion is controlled above.
+                </p>
+              </div>
+              <div className={styles.itemActionCluster}>
+                <CompactAddButton label="New project" onClick={() => onAddEntry("projects")} />
+                <CompactRemoveButton
+                  label="Remove project from profile"
+                  onClick={() => {
+                    onRemoveEntry("projects", activeProject.id);
+                    setActiveProjectDetailId(null);
+                  }}
+                />
+              </div>
+            </div>
+            <div className={styles.grid}>
               <label className={styles.field}>
-                <span>Description</span>
-                <textarea
-                  className={styles.textarea}
-                  value={entry.description ?? ""}
+                <span>Title</span>
+                <input
+                  value={activeProject.title}
+                  onChange={(event) => onUpdateProjectEntry(activeProject.id, { title: event.target.value })}
+                />
+              </label>
+              <label className={styles.field}>
+                <span>Technologies</span>
+                <input
+                  value={activeProject.technologies.join(", ")}
                   onChange={(event) =>
-                    onUpdateProjectEntry(entry.id, { description: event.target.value })
+                    onUpdateProjectEntry(activeProject.id, {
+                      technologies: event.target.value.split(",").map((item) => item.trim()).filter(Boolean)
+                    })
                   }
                 />
               </label>
-              <LineLinkField
-                label="Description link URL"
-                value={entry.descriptionLinkUrl}
-                onChange={(value) => onUpdateProjectDescriptionLinkUrl(entry.id, value)}
+            </div>
+            <LinkCollectionEditor
+              title="Project title links"
+              description="Links rendered on the project title line."
+              links={activeProject.links}
+              onAddLink={() => onAddEntryLink("projects", activeProject.id)}
+              onUpdateLink={(linkId, patch) => onUpdateEntryLink("projects", activeProject.id, linkId, patch)}
+              onRemoveLink={(linkId) => onRemoveEntryLink("projects", activeProject.id, linkId)}
+            />
+            <label className={styles.field}>
+              <span>Description</span>
+              <textarea
+                className={styles.textarea}
+                value={activeProject.description ?? ""}
+                onChange={(event) =>
+                  onUpdateProjectEntry(activeProject.id, { description: event.target.value })
+                }
               />
-              <div className={styles.bullets}>
-                <div className={styles.inlineActions}>
-                  <span className={styles.inlineLabel}>Bullets</span>
-                  <CompactAddButton label="Bullet" onClick={() => onAddBullet("projects", entry.id)} />
-                </div>
-                {entry.bullets.map((bullet) => (
-                  <div key={bullet.id} className={styles.bulletRow}>
-                    <div className={styles.bulletEditor}>
-                      <textarea
-                        className={styles.textarea}
-                        value={bullet.text}
-                        onChange={(event) =>
-                          onUpdateBullet("projects", entry.id, bullet.id, event.target.value)
-                        }
-                      />
-                      <LineLinkField
-                        label="Bullet link URL"
-                        value={bullet.linkUrl}
-                        onChange={(value) => onUpdateBulletLinkUrl("projects", entry.id, bullet.id, value)}
-                      />
-                    </div>
-                    <div className={styles.bulletActionCluster}>
-                      {renderBulletSelectionControl(bullet.id, "projects")}
-                      <CompactRemoveButton
-                        label="Remove project bullet"
-                        onClick={() => onRemoveBullet("projects", entry.id, bullet.id)}
-                      />
-                    </div>
-                  </div>
-                ))}
+            </label>
+            <LineLinkField
+              label="Description link URL"
+              value={activeProject.descriptionLinkUrl}
+              onChange={(value) => onUpdateProjectDescriptionLinkUrl(activeProject.id, value)}
+            />
+            <div className={styles.bullets}>
+              <div className={styles.inlineActions}>
+                <span className={styles.inlineLabel}>Project bullets</span>
+                <CompactAddButton label="Bullet" onClick={() => onAddBullet("projects", activeProject.id)} />
               </div>
-            </article>
-          ))}
-        </div>
+              {activeProject.bullets.map((bullet) => (
+                <div key={bullet.id} className={styles.bulletRow}>
+                  <div className={styles.bulletEditor}>
+                    <textarea
+                      className={styles.textarea}
+                      value={bullet.text}
+                      onChange={(event) =>
+                        onUpdateBullet("projects", activeProject.id, bullet.id, event.target.value)
+                      }
+                    />
+                    <LineLinkField
+                      label="Bullet link URL"
+                      value={bullet.linkUrl}
+                      onChange={(value) =>
+                        onUpdateBulletLinkUrl("projects", activeProject.id, bullet.id, value)
+                      }
+                    />
+                  </div>
+                  <div className={styles.bulletActionCluster}>
+                    <label className={styles.bulletSelectionLabel}>
+                      {renderBulletSelectionControl(bullet.id, "projects")}
+                      <span>Show</span>
+                    </label>
+                    <CompactRemoveButton
+                      label="Remove project bullet"
+                      onClick={() => onRemoveBullet("projects", activeProject.id, bullet.id)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </section>
     );
   }

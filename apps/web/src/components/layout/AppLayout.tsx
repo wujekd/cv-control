@@ -18,10 +18,16 @@ export function AppLayout() {
       <nav className={styles.nav} aria-label="Primary">
         <span className={styles.navBrand}>CV Control</span>
         <NavLink
+          to="/data"
+          className={({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}
+        >
+          My Data
+        </NavLink>
+        <NavLink
           to="/editor"
           className={({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}
         >
-          Editor
+          CV Editor
         </NavLink>
         <NavLink
           to="/applications"

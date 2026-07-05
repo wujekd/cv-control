@@ -11,6 +11,7 @@ export const basicsSectionSchema = z
     email: z.string().optional(),
     phone: z.string().optional(),
     linkedIn: z.string().optional(),
+    github: z.string().optional(),
     website: z.string().optional()
   })
   .passthrough();

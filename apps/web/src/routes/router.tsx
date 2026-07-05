@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter, createHashRouter } from "react-router-do
 import { AppLayout } from "../components/layout/AppLayout";
 import { ApplicationsView } from "../views/ApplicationsView/ApplicationsView";
 import { EditorView } from "../views/EditorView/EditorView";
+import { MyDataView } from "../views/MyDataView/MyDataView";
 
 function RouteError() {
   return (
@@ -26,6 +27,10 @@ export const router = createRouter([
       {
         index: true,
         element: <Navigate to="/editor" replace />
+      },
+      {
+        path: "data",
+        element: <MyDataView />
       },
       {
         path: "editor/:versionId?",

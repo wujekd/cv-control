@@ -24,7 +24,7 @@ export const CLASSIC_V1_TEMPLATE: DocumentTemplate = {
     personalInfo: {
       type: "personalInfo",
       title: "Personal Information",
-      slotHeightMm: 19,
+      slotHeightMm: 26,
       titleHeightMm: 0,
       contentPaddingMm: { top: 2, right: 0, bottom: 2, left: 0 },
       contentAlignY: "center",
@@ -48,7 +48,7 @@ export const CLASSIC_V1_TEMPLATE: DocumentTemplate = {
       title: "Education",
       slotHeightMm: 31,
       titleHeightMm: 6,
-      contentPaddingMm: { top: 2, right: 0, bottom: 1.5, left: 0 },
+      contentPaddingMm: { top: 0.8, right: 0, bottom: 1.5, left: 0 },
       contentAlignY: "start",
       allowItemSelection: true,
       allowBulletSelection: true,
@@ -59,7 +59,7 @@ export const CLASSIC_V1_TEMPLATE: DocumentTemplate = {
       title: "Experience",
       slotHeightMm: 76,
       titleHeightMm: 6,
-      contentPaddingMm: { top: 2, right: 0, bottom: 1.5, left: 0 },
+      contentPaddingMm: { top: 0.8, right: 0, bottom: 1.5, left: 0 },
       contentAlignY: "start",
       allowItemSelection: true,
       allowBulletSelection: true,
@@ -70,7 +70,7 @@ export const CLASSIC_V1_TEMPLATE: DocumentTemplate = {
       title: "Projects",
       slotHeightMm: 82,
       titleHeightMm: 6,
-      contentPaddingMm: { top: 2, right: 0, bottom: 1.5, left: 0 },
+      contentPaddingMm: { top: 0.8, right: 0, bottom: 1.5, left: 0 },
       contentAlignY: "start",
       allowItemSelection: true,
       allowBulletSelection: true,
@@ -81,7 +81,7 @@ export const CLASSIC_V1_TEMPLATE: DocumentTemplate = {
       title: "Skills",
       slotHeightMm: 33,
       titleHeightMm: 6,
-      contentPaddingMm: { top: 2, right: 0, bottom: 1.2, left: 0 },
+      contentPaddingMm: { top: 0.8, right: 0, bottom: 1.2, left: 0 },
       contentAlignY: "center",
       allowItemSelection: true,
       allowBulletSelection: false,
@@ -90,15 +90,15 @@ export const CLASSIC_V1_TEMPLATE: DocumentTemplate = {
   },
   styleDefaults: {
     typography: {
-      nameSizePt: 22.6,
+      nameSizePt: 40,
       bodySizePt: 10,
-      sectionTitleSizePt: 10.1,
+      sectionTitleSizePt: 13,
       metaSizePt: 8.1,
-      contactBarSizePt: 7.2
+      contactBarSizePt: 9
     },
     spacing: {
       lineHeight: 1.08,
-      sectionGapMm: 2,
+      sectionGapMm: 1.4,
       itemGapMm: 0.7,
       bulletGapMm: 0.5
     }

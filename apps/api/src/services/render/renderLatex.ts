@@ -71,37 +71,47 @@ function renderTitle(document: RenderableCv, title: string): string {
   const titleSizePt = document.style.typography.sectionTitleSizePt;
   const titleLineHeightPt = getLineHeightPt(titleSizePt, document.style.spacing.lineHeight);
   return [
-    `{\\fontsize{${formatLatexNumber(titleSizePt)}}{${formatLatexNumber(titleLineHeightPt)}}\\selectfont\\bfseries\\MakeUppercase{${escapeLatex(title)}}\\par}`,
-    "\\vspace{0.25mm}",
-    "\\hrule height 0.3pt",
+    "{\\color{black!35}\\hrule height 0.3pt}",
+    "\\vspace{1.1mm}",
+    `{\\fontsize{${formatLatexNumber(titleSizePt)}}{${formatLatexNumber(titleLineHeightPt)}}\\headingfont\\bfseries\\MakeUppercase{${escapeLatex(title)}}\\par}`,
     "\\vspace{0.85mm}"
   ].join("\n");
 }
 
-function renderContactBar(document: RenderableCv, parts: string[]): string {
+interface ContactBarPart {
+  icon: string;
+  content: string;
+}
+
+function renderContactBar(document: RenderableCv, parts: ContactBarPart[]): string {
   if (parts.length === 0) {
     return "";
   }
 
-  const separator = "\\hspace{1.9mm}{\\fontsize{6.4}{6.4}\\selectfont $\\bullet$}\\hspace{1.9mm}";
   const contactBarSizePt = document.style.typography.contactBarSizePt;
   const contactBarLineHeightPt = getLineHeightPt(contactBarSizePt, document.style.spacing.lineHeight);
+  const items = parts.map((part) => `\\mbox{${part.icon}\\hspace{1.4mm}${part.content}}`);
+  // Full-bleed strip: the box spans the paper width, ignoring the page
+  // margins, while the item row stays aligned with the content column.
+  const leftMarginMm = formatLatexNumber(document.page.marginsMm.left);
   return [
     "\\vspace{0.65mm}",
-    "{\\setlength{\\fboxsep}{1.7mm}",
-    "\\noindent\\colorbox{black}{%",
-    "\\parbox{\\dimexpr\\textwidth-2\\fboxsep\\relax}{%",
-    `\\centering\\color{white}\\fontsize{${formatLatexNumber(contactBarSizePt)}}{${formatLatexNumber(contactBarLineHeightPt)}}\\selectfont ${parts.join(separator)}%`,
-    "}}}"
+    "{\\setlength{\\fboxsep}{2.1mm}",
+    `\\noindent\\makebox[\\textwidth][l]{\\hspace*{-${leftMarginMm}mm}%`,
+    "\\colorbox{black}{%",
+    "\\makebox[\\dimexpr\\paperwidth-2\\fboxsep\\relax][c]{%",
+    `\\makebox[\\textwidth][c]{\\normalfont\\color{white}\\fontsize{${formatLatexNumber(contactBarSizePt)}}{${formatLatexNumber(contactBarLineHeightPt)}}\\selectfont ${items.join("\\hfill ")}}%`,
+    "}}}}"
   ].join("\n");
 }
 
-function renderLinkMarker(linkUrl: string): string {
-  return `\\href{${escapeLatex(resolveLinkHref(linkUrl))}}{LINK}`;
+function renderLinkMarker(document: RenderableCv, linkUrl: string): string {
+  const markerSizePt = document.style.typography.bodySizePt * 0.95;
+  return `\\href{${escapeLatex(resolveLinkHref(linkUrl))}}{{\\fontsize{${formatLatexNumber(markerSizePt)}}{${formatLatexNumber(markerSizePt)}}\\selectfont\\bfseries\\color{linkblue}\\underline{LINK}}}`;
 }
 
-function renderLinkedText(text: string, linkUrl?: string): string {
-  return `${escapeLatex(text)}${linkUrl ? ` ${renderLinkMarker(linkUrl)}` : ""}`;
+function renderLinkedText(document: RenderableCv, text: string, linkUrl?: string): string {
+  return `${escapeLatex(text)}${linkUrl ? ` ${renderLinkMarker(document, linkUrl)}` : ""}`;
 }
 
 function renderBullets(
@@ -116,7 +126,7 @@ function renderBullets(
     `\\begin{itemize}[leftmargin=4mm,itemsep=${formatLatexNumber(document.style.spacing.bulletGapMm)}mm,topsep=${formatLatexNumber(
       Math.max(document.style.spacing.bulletGapMm * 0.8, 0.15)
     )}mm,parsep=0.05mm,partopsep=0mm]`,
-    ...bullets.map((bullet) => `\\item ${renderLinkedText(bullet.text, bullet.linkUrl)}`),
+    ...bullets.map((bullet) => `\\item ${renderLinkedText(document, bullet.text, bullet.linkUrl)}`),
     "\\end{itemize}"
   ].join("\n");
 }
@@ -127,9 +137,9 @@ function renderMetaLine(document: RenderableCv, content: string): string {
   return `{\\fontsize{${formatLatexNumber(metaSizePt)}}{${formatLatexNumber(metaLineHeightPt)}}\\selectfont ${content}}`;
 }
 
-function renderLinks(links: LinkRef[] | undefined, separator = " \\ "): string {
+function renderLinks(document: RenderableCv, links: LinkRef[] | undefined, separator = " \\ "): string {
   return getRenderableLinks(links)
-    .map((link) => renderLinkMarker(link.url))
+    .map((link) => renderLinkMarker(document, link.url))
     .join(separator);
 }
 
@@ -141,17 +151,15 @@ function renderEducation(document: RenderableCv, section: RenderableEducationSec
   return section.items
     .map((item) => {
       const dateLabel = formatDateRange(item.startDate, item.endDate);
-      const lineLinks = renderLinks(item.links);
+      const lineLinks = renderLinks(document, item.links);
       const headline = [
         `\\textbf{${escapeLatex(item.qualification)}}`,
+        item.grade ? ` (${escapeLatex(item.grade)})` : "",
         lineLinks ? ` ${lineLinks}` : "",
         item.institution ? `, ${escapeLatex(item.institution)}` : "",
         dateLabel ? ` \\hfill \\textbf{${escapeLatex(dateLabel)}}` : ""
       ].join("");
-      const metaLines = [
-        item.grade ? renderMetaLine(document, escapeLatex(item.grade)) : ""
-      ].filter(Boolean);
-      return `${headline}${metaLines.length > 0 ? `\\\\[-0.5mm]${metaLines.join("\\\\[-0.5mm]")}` : ""}\n${renderBullets(document, item.bullets)}`;
+      return `${headline}\n${renderBullets(document, item.bullets)}`;
     })
     .join(`\n\\vspace{${formatLatexNumber(document.style.spacing.itemGapMm)}mm}\n`);
 }
@@ -164,10 +172,10 @@ function renderExperience(document: RenderableCv, section: RenderableExperienceS
   return section.items
     .map((item) => {
       const dateLabel = formatDateRange(item.startDate, item.endDate);
-      const organization = item.organisation ? ` (${escapeLatex(item.organisation)})` : "";
-      const lineLinks = renderLinks(item.links);
-      const header = `\\textbf{${escapeLatex(item.role)}}${organization}${lineLinks ? ` ${lineLinks}` : ""}${
-        dateLabel ? ` \\hfill ${escapeLatex(dateLabel)}` : ""
+      const organization = item.organisation ? ` \\textit{(${escapeLatex(item.organisation)})}` : "";
+      const lineLinks = renderLinks(document, item.links);
+      const header = `\\textbf{\\textit{${escapeLatex(item.role)}}}${organization}${lineLinks ? ` ${lineLinks}` : ""}${
+        dateLabel ? ` \\hfill \\textbf{\\textit{${escapeLatex(dateLabel)}}}` : ""
       }`;
       const metaLines = [
         item.location ? renderMetaLine(document, escapeLatex(item.location)) : ""
@@ -188,16 +196,16 @@ function renderProjects(document: RenderableCv, section: RenderableProjectsSecti
   return section.items
     .map((item) => {
       const category = item.category ? ` {\\textit{(${escapeLatex(item.category)})}}` : "";
-      const links = renderLinks(item.links);
-      const description = item.description ? renderLinkedText(item.description, item.descriptionLinkUrl) : "";
+      const links = renderLinks(document, item.links);
+      const description = item.description ? renderLinkedText(document, item.description, item.descriptionLinkUrl) : "";
       const tech =
         item.technologies.length > 0
-          ? `{\\raggedright\\fontsize{${formatLatexNumber(metaSizePt)}}{${formatLatexNumber(metaLineHeightPt)}}\\selectfont\\textit{Technologies Used: ${escapeLatex(item.technologies.join(", "))}}\\par}`
+          ? `{\\fontsize{${formatLatexNumber(metaSizePt)}}{${formatLatexNumber(metaLineHeightPt)}}\\selectfont\\textit{Technologies Used: ${escapeLatex(item.technologies.join(", "))}}\\par}`
           : "";
 
       return [
-        `{\\raggedright\\textbf{${escapeLatex(item.title)}}${category}${links ? ` ${links}` : ""}\\par}`,
-        description ? `{\\raggedright ${description}\\par}` : "",
+        `{\\textbf{${escapeLatex(item.title)}}${category}${links ? ` ${links}` : ""}\\par}`,
+        description ? `{${description}\\par}` : "",
         item.bullets.length > 0 ? renderBullets(document, item.bullets) : "",
         tech
       ]
@@ -215,7 +223,7 @@ function renderSkills(document: RenderableCv, section: RenderableSkillsSection):
   return section.groups
     .map(
       (group) =>
-        `\\textbf{${escapeLatex(group.name)}}: ${escapeLatex(group.items.map((item) => item.label).join(", "))}`
+        `\\textbf{${escapeLatex(group.name)}:} ${escapeLatex(group.items.map((item) => item.label).join(", "))}`
     )
     .join(`\\\\[${formatLatexNumber(Math.max(document.style.spacing.bulletGapMm * 0.9, 0.25))}mm]\n`);
 }
@@ -223,21 +231,45 @@ function renderSkills(document: RenderableCv, section: RenderableSkillsSection):
 function renderSectionContent(document: RenderableCv, section: RenderableSection): string {
   switch (section.type) {
     case "personalInfo": {
-      const basics = [
-        ...[section.basics.location, section.basics.email, section.basics.phone]
-          .filter(Boolean)
-          .map((part) => escapeLatex(part as string)),
+      const basics: ContactBarPart[] = [
+        ...(section.basics.location
+          ? [{ icon: "\\faMapMarker*", content: escapeLatex(section.basics.location) }]
+          : []),
+        ...(section.basics.email
+          ? [{ icon: "\\faEnvelope", content: escapeLatex(section.basics.email) }]
+          : []),
+        ...(section.basics.phone
+          ? [{ icon: "\\faPhone*", content: escapeLatex(section.basics.phone) }]
+          : []),
         ...(section.basics.linkedIn
-          ? [renderLinkedText(section.basics.linkedIn, section.basics.linkedIn)]
+          ? [
+              {
+                icon: "\\faLinkedin",
+                content: `\\href{${escapeLatex(resolveLinkHref(section.basics.linkedIn))}}{\\color{white}${escapeLatex(section.basics.linkedIn)}}`
+              }
+            ]
+          : []),
+        ...(section.basics.github
+          ? [
+              {
+                icon: "\\faGithub",
+                content: `\\href{${escapeLatex(resolveLinkHref(section.basics.github))}}{\\color{white}${escapeLatex(section.basics.github)}}`
+              }
+            ]
           : []),
         ...(section.basics.website
-          ? [renderLinkedText(section.basics.website, section.basics.website)]
+          ? [
+              {
+                icon: "\\faGlobe",
+                content: `\\href{${escapeLatex(resolveLinkHref(section.basics.website))}}{\\color{white}${escapeLatex(section.basics.website)}}`
+              }
+            ]
           : [])
       ];
 
       return [
         "{\\centering",
-        `\\fontsize{${formatLatexNumber(document.style.typography.nameSizePt)}}{${formatLatexNumber(getLineHeightPt(document.style.typography.nameSizePt, 1.03))}}\\selectfont\\bfseries\\MakeUppercase{${escapeLatex(section.basics.fullName)}}\\par`,
+        `{\\fontsize{${formatLatexNumber(document.style.typography.nameSizePt)}}{${formatLatexNumber(getLineHeightPt(document.style.typography.nameSizePt, 1.03))}}\\headingfont\\bfseries\\MakeUppercase{${escapeLatex(section.basics.fullName)}}\\par}`,
         renderContactBar(document, basics),
         "\\par}"
       ].join("\n");
@@ -247,9 +279,9 @@ function renderSectionContent(document: RenderableCv, section: RenderableSection
         return "";
       }
 
-      const summaryText = `{\\fontsize{${formatLatexNumber(document.style.typography.bodySizePt)}}{${formatLatexNumber(
+      const summaryText = `{\\centering\\fontsize{${formatLatexNumber(document.style.typography.bodySizePt)}}{${formatLatexNumber(
         getLineHeightPt(document.style.typography.bodySizePt, document.style.spacing.lineHeight)
-      )}}\\selectfont ${renderLinkedText(section.summary.text, section.summary.linkUrl)}}`;
+      )}}\\selectfont ${renderLinkedText(document, section.summary.text, section.summary.linkUrl)}\\par}`;
 
       return summaryText;
     }
@@ -305,17 +337,25 @@ export function renderLatexDocument(document: RenderableCv): string {
 ]{geometry}
 \\usepackage[T1]{fontenc}
 \\usepackage{enumitem}
-\\usepackage[scaled=0.95]{helvet}
-\\usepackage[hidelinks]{hyperref}
+\\usepackage[sfdefault,lining]{carlito}
 \\usepackage[table]{xcolor}
+\\usepackage{fontawesome5}
+\\usepackage[hidelinks]{hyperref}
+\\definecolor{linkblue}{RGB}{5,99,193}
+\\newfontfamily{\\headingfont}{texgyreadventor}[
+  Extension = .otf,
+  UprightFont = *-regular,
+  BoldFont = *-bold,
+  ItalicFont = *-italic,
+  BoldItalicFont = *-bolditalic
+]
 \\pagestyle{empty}
-\\renewcommand{\\familydefault}{\\sfdefault}
 \\setlength{\\parindent}{0pt}
 \\setlength{\\parskip}{0pt}
+\\setlength{\\emergencystretch}{3em}
 \\raggedbottom
 \\begin{document}
 \\fontsize{${formatLatexNumber(baseFontSizePt)}}{${formatLatexNumber(baseLineHeightPt)}}\\selectfont
-\\raggedright
 ${sections}
 \\end{document}
 `.trim();

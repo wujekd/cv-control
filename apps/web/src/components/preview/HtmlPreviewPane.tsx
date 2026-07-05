@@ -93,6 +93,13 @@ function getPersonalInfoParts(section: Extract<RenderableSection, { type: "perso
     });
   }
 
+  if (section.basics.github) {
+    parts.push({
+      key: "contact-github",
+      content: renderLinkedText(section.basics.github, section.basics.github, styles.contactText, styles.contactLink)
+    });
+  }
+
   if (section.basics.website) {
     parts.push({
       key: "contact-website",
@@ -126,11 +133,11 @@ function renderSectionContent(section: RenderableSection) {
           <header className={styles.entryHeader}>
             <div className={styles.entryHeadingGroup}>
               <strong>{item.qualification}</strong>
+              {item.grade ? <span> ({item.grade})</span> : null}
               {renderInlineLinks(item.links, styles.entryHeaderLinks)}
             </div>
             <span>{item.institution}</span>
           </header>
-          {item.grade ? <p className={styles.mutedInline}>{item.grade}</p> : null}
           {renderBullets(item.bullets)}
         </article>
       ));
@@ -283,6 +290,8 @@ export function HtmlPreviewPane({
               ["--cv-section-title-size" as string]: `${document.style.typography.sectionTitleSizePt}pt`,
               ["--cv-meta-size" as string]: `${document.style.typography.metaSizePt}pt`,
               ["--cv-contact-bar-size" as string]: `${document.style.typography.contactBarSizePt}pt`,
+              ["--cv-margin-left" as string]: `${document.page.marginsMm.left}mm`,
+              ["--cv-margin-right" as string]: `${document.page.marginsMm.right}mm`,
               ["--cv-item-gap" as string]: `${document.style.spacing.itemGapMm}mm`,
               ["--cv-bullet-gap" as string]: `${document.style.spacing.bulletGapMm}mm`,
               ["--cv-heading-tracking" as string]: `${document.htmlTheme.headingTrackingEm}em`

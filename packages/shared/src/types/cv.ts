@@ -12,6 +12,7 @@ export interface BasicsSection {
   email?: string;
   phone?: string;
   linkedIn?: string;
+  github?: string;
   website?: string;
 }
 

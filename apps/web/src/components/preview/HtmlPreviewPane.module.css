@@ -181,7 +181,11 @@
 
 .contactBar {
   margin-top: 0.22rem;
-  padding: 0.42rem 0.65rem 0.46rem;
+  /* Full-bleed strip: cancel the page margins, then pad the text back in line
+     with the content column. */
+  margin-left: calc(-1 * var(--cv-margin-left, 0mm));
+  margin-right: calc(-1 * var(--cv-margin-right, 0mm));
+  padding: 0.42rem var(--cv-margin-right, 0.65rem) 0.46rem var(--cv-margin-left, 0.65rem);
   background: #121212;
   color: white;
   font-size: var(--cv-contact-bar-size);

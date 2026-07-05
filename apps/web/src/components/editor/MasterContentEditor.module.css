@@ -322,6 +322,11 @@
   min-width: 0;
 }
 
+.subsectionMeta h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
 .subsectionDescription,
 .emptyHint {
   margin: 0;
@@ -377,6 +382,161 @@
   line-height: 1;
 }
 
+.projectCountPill {
+  flex: 0 0 auto;
+  padding: 0.28rem 0.54rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  background: rgba(18, 30, 40, 0.04);
+  color: var(--color-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.projectPickerLayout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: 0.72rem;
+  min-width: 0;
+}
+
+.projectColumn {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.projectSelectionList {
+  display: grid;
+  align-content: start;
+  gap: 0.44rem;
+  min-width: 0;
+}
+
+.projectSelectionCard {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 0;
+  padding: 0.58rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-raised);
+}
+
+.projectSelectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.projectCheckLabel {
+  display: flex;
+  align-items: start;
+  gap: 0.45rem;
+  min-width: 0;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.projectCheckLabel input {
+  flex: 0 0 auto;
+  width: 1rem;
+  margin: 0.12rem 0 0;
+}
+
+.projectCheckLabel span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.projectCardActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
+.projectCardActions button {
+  width: 1.72rem;
+  min-width: 1.72rem;
+  height: 1.72rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.projectSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+  color: var(--color-muted);
+  font-size: 0.76rem;
+}
+
+.projectSummary span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.projectDescription {
+  display: -webkit-box;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.secondaryTextButton {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.secondaryTextButton:hover {
+  color: var(--color-accent-strong);
+}
+
+.projectDetailPanel {
+  display: grid;
+  gap: 0.62rem;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid rgba(14, 90, 99, 0.2);
+  border-radius: var(--radius-panel);
+  background: rgba(11, 107, 96, 0.04);
+}
+
+.projectDetailPanel h3 {
+  margin: 0;
+  min-width: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.bulletSelectionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--color-muted);
+  font-size: 0.74rem;
+}
+
+.bulletSelectionLabel input {
+  width: 1rem;
+  margin: 0;
+}
+
 .skillRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -412,6 +572,10 @@
 }
 
 @media (max-width: 860px) {
+  .projectPickerLayout {
+    grid-template-columns: 1fr;
+  }
+
   .overrideGrid {
     grid-template-columns: 1fr;
   }
@@ -420,12 +584,14 @@
 @media (max-width: 720px) {
   .headerWithAction,
   .inlineActions,
+  .projectSelectionHeader,
   .skillGroupHeader {
     align-items: stretch;
     flex-direction: column;
   }
 
   .itemActionCluster,
+  .projectCardActions,
   .skillGroupActions {
     flex-wrap: wrap;
     justify-content: flex-start;
