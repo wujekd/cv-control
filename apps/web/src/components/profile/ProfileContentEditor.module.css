@@ -1,0 +1,263 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.header p {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  max-width: 34rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cardTitle {
+  font-size: 0.88rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.76rem;
+}
+
+.field input,
+.field textarea {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-raised);
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.textarea {
+  min-height: 3.2rem;
+  resize: vertical;
+}
+
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.inlineActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inlineLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.bulletRow {
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.bulletEditor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.skillRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.skillRow .field {
+  flex: 1;
+}
+
+.inlineInput {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-raised);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-raised);
+  color: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.addButton:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+.buttonGlyph {
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.removeButton {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-raised);
+  color: var(--color-danger);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.removeButton:hover {
+  border-color: var(--color-danger);
+}
+
+.emptyHint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.masterDetail {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.4rem;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+}
+
+.listItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.listItem:hover {
+  background: var(--color-accent-soft);
+}
+
+.listItemActive {
+  composes: listItem;
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.listItemTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listItemSubtitle {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detailTitle {
+  font-size: 0.88rem;
+}

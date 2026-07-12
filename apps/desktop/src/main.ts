@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const devServerUrl = process.env.CV_DEV_SERVER_URL;
+const packagedRendererPath = path.join(process.resourcesPath, "web", "index.html");
+const localRendererPath = path.resolve(__dirname, "..", "..", "web", "dist-electron", "index.html");
 
 // Without this, userData lands under the npm package name (@cv-control/desktop).
 app.setName("CV Control");
@@ -35,9 +37,6 @@ async function startEmbeddedApi(): Promise<string> {
 }
 
 async function createWindow() {
-  // In dev mode the browser workflow's servers (dev:api on 4000, dev:web on
-  // 5173) are reused, so nothing is embedded and the renderer falls back to
-  // localhost:4000.
   const apiUrl = devServerUrl ? null : await startEmbeddedApi();
 
   const window = new BrowserWindow({
@@ -52,11 +51,13 @@ async function createWindow() {
   if (devServerUrl) {
     await window.loadURL(devServerUrl);
   } else {
-    await window.loadFile(path.join(process.resourcesPath, "web", "index.html"));
+    await window.loadFile(app.isPackaged ? packagedRendererPath : localRendererPath);
   }
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(createWindow).catch((error) => {
+  console.error(error);
+});
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {

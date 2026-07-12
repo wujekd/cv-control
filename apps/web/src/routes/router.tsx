@@ -1,8 +1,9 @@
 import { Navigate, createBrowserRouter, createHashRouter } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout";
 import { ApplicationsView } from "../views/ApplicationsView/ApplicationsView";
+import { CvListView } from "../views/CvListView/CvListView";
 import { EditorView } from "../views/EditorView/EditorView";
-import { MyDataView } from "../views/MyDataView/MyDataView";
+import { ProfileView } from "../views/ProfileView/ProfileView";
 
 function RouteError() {
   return (
@@ -26,14 +27,18 @@ export const router = createRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/editor" replace />
+        element: <Navigate to="/profile" replace />
       },
       {
-        path: "data",
-        element: <MyDataView />
+        path: "profile",
+        element: <ProfileView />
       },
       {
-        path: "editor/:versionId?",
+        path: "cvs",
+        element: <CvListView />
+      },
+      {
+        path: "cvs/:versionId",
         element: <EditorView />
       },
       {
@@ -43,4 +48,3 @@ export const router = createRouter([
     ]
   }
 ]);
-

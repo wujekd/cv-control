@@ -1,0 +1,151 @@
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  height: 100%;
+  max-width: 66rem;
+  margin: 0 auto;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.header p {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  max-width: 40rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.statusText {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.errorText {
+  font-size: 0.78rem;
+  color: var(--color-danger);
+}
+
+.saveButton {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: 0.8rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.sideNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+  height: fit-content;
+}
+
+.navItem {
+  text-align: left;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.navItem:hover {
+  background: var(--color-accent-soft);
+}
+
+.navItemActive {
+  composes: navItem;
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+  font-weight: 600;
+}
+
+.content {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.formPanel {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.sectionIntro {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+}
+
+.field input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-raised);
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.loadingText {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}

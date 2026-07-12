@@ -62,6 +62,8 @@ interface EditorStore {
   clearVersionBasicsOverrides: () => void;
   updateSummary: (value: string) => void;
   updateSummaryLinkUrl: (value: string) => void;
+  updateCanonicalSummary: (value: string) => void;
+  updateCanonicalSummaryLinkUrl: (value: string) => void;
   updateEducationEntry: (id: string, patch: Partial<EducationEntry>) => void;
   updateExperienceEntry: (id: string, patch: Partial<ExperienceEntry>) => void;
   updateProjectEntry: (id: string, patch: Partial<ProjectEntry>) => void;
@@ -108,6 +110,7 @@ interface EditorStore {
   toggleBulletSelection: (sectionType: "education" | "experience" | "projects", bulletId: string) => void;
   persistDrafts: () => Promise<void>;
   cloneActiveVersion: () => Promise<void>;
+  branchVersion: (sourceVersionId: string, name: string) => Promise<CvVersion | null>;
   deleteVersion: (versionId: string) => Promise<void>;
   requestPdfPreview: () => Promise<void>;
 }
@@ -690,6 +693,46 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
           saveState: "idle"
         };
+      }
+
+      return {
+        profile: {
+          ...state.profile,
+          summary: {
+            text: state.profile.summary?.text ?? "",
+            linkUrl: value
+          }
+        },
+        dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
+        saveState: "idle"
+      };
+    });
+  },
+
+  updateCanonicalSummary(value) {
+    set((state) => {
+      if (!state.profile) {
+        return {};
+      }
+
+      return {
+        profile: {
+          ...state.profile,
+          summary: {
+            text: value,
+            linkUrl: state.profile.summary?.linkUrl
+          }
+        },
+        dirtySidebarKeys: addDirtyKeys(state.dirtySidebarKeys, ["summary"]),
+        saveState: "idle"
+      };
+    });
+  },
+
+  updateCanonicalSummaryLinkUrl(value) {
+    set((state) => {
+      if (!state.profile) {
+        return {};
       }
 
       return {
@@ -1508,6 +1551,24 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set({
         errorMessage: error instanceof Error ? error.message : "Clone failed"
       });
+    }
+  },
+
+  async branchVersion(sourceVersionId, name) {
+    const trimmedName = name.trim() || "Tailored CV";
+    try {
+      const cloned = await CvApiClient.cloneVersion(sourceVersionId, trimmedName);
+      set((state) => ({
+        versions: [cloned, ...state.versions],
+        savedVersions: [cloned, ...state.savedVersions],
+        activeVersionId: cloned.id
+      }));
+      return cloned;
+    } catch (error) {
+      set({
+        errorMessage: error instanceof Error ? error.message : "Branch failed"
+      });
+      return null;
     }
   },
 

@@ -9,9 +9,8 @@ import type { CSSProperties } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DocumentSettingsEditor } from "../../components/editor/DocumentSettingsEditor";
-import { MasterContentEditor } from "../../components/editor/MasterContentEditor";
 import { SectionOrderEditor } from "../../components/editor/SectionOrderEditor";
-import { SectionSettingsPanel } from "../../components/editor/SectionSettingsPanel";
+import { VersionContentPanel } from "../../components/editor/VersionContentPanel";
 import { FitDiagnosticsPanel } from "../../components/preview/FitDiagnosticsPanel";
 import { HtmlPreviewPane } from "../../components/preview/HtmlPreviewPane";
 import { PdfPreviewPane } from "../../components/preview/PdfPreviewPane";
@@ -81,18 +80,6 @@ function getOrderSource(version: CvVersion | null): CascadeSource {
   return version.localOverrides?.sectionOrder ? "custom" : "inherited";
 }
 
-function countLocalAreas(version: CvVersion | null): number {
-  if (!version?.parentVersionId) {
-    return 0;
-  }
-
-  const sectionCount = Object.values(version.localOverrides?.sections ?? {}).filter(Boolean).length;
-  const documentCount =
-    version.localOverrides?.documentStyleOverrides || version.localOverrides?.documentTemplateId ? 1 : 0;
-  const orderCount = version.localOverrides?.sectionOrder ? 1 : 0;
-  return sectionCount + documentCount + orderCount;
-}
-
 export function EditorView() {
   const [previewMode, setPreviewMode] = useState<"pdf" | "html">("pdf");
   const [renamingVersionId, setRenamingVersionId] = useState<string | null>(null);
@@ -123,29 +110,11 @@ export function EditorView() {
     moveSection,
     updateDocumentTypography,
     updateDocumentSpacing,
-    updateCanonicalBasicsField,
     updateVersionBasicsField,
     clearVersionBasicsOverrides,
     updateSummary,
     updateSummaryLinkUrl,
-    updateEducationEntry,
-    updateExperienceEntry,
-    updateProjectEntry,
-    updateProjectDescriptionLinkUrl,
-    addEntryLink,
-    updateEntryLink,
-    removeEntryLink,
-    updateSkillGroupName,
-    updateSkillItem,
-    addSkillItem,
-    removeSkillItem,
     toggleSkillGroupSelection,
-    addEntry,
-    removeEntry,
-    addBullet,
-    updateBullet,
-    updateBulletLinkUrl,
-    removeBullet,
     toggleItemSelection,
     moveSelectedItem,
     toggleBulletSelection,
@@ -193,8 +162,7 @@ export function EditorView() {
     }),
     [activeStoredVersion]
   );
-  const localAreaCount = countLocalAreas(activeStoredVersion);
-  const { dirtySidebarKeys, dirtyItemIdsBySection } = useMemo(
+  const { dirtySidebarKeys } = useMemo(
     () => deriveDirtyState(effectiveProfile, savedEffectiveProfile, activeVersion, savedActiveVersion),
     [activeVersion, effectiveProfile, savedActiveVersion, savedEffectiveProfile]
   );
@@ -237,12 +205,6 @@ export function EditorView() {
       setActiveVersion(params.versionId);
     }
   }, [params.versionId, setActiveVersion, versions]);
-
-  useEffect(() => {
-    if (activeVersionId) {
-      navigate(`/editor/${activeVersionId}`, { replace: true });
-    }
-  }, [activeVersionId, navigate]);
 
   useEffect(() => {
     if (!profile || !activeVersionId || isBootstrapping) {
@@ -302,7 +264,7 @@ export function EditorView() {
 
   const onVersionChange = (versionId: string) => {
     setActiveVersion(versionId);
-    navigate(`/editor/${versionId}`);
+    navigate(`/cvs/${versionId}`);
   };
 
   const startRename = (version: CvVersion) => {
@@ -329,10 +291,25 @@ export function EditorView() {
     <div className={styles.layout}>
       <header className={styles.topBar}>
         <div className={styles.titleBlock}>
-          <h1 className={styles.title}>CV Control</h1>
-          <p className={styles.eyebrow}>Structured CV Builder</p>
+          <h1 className={styles.title}>{activeStoredVersion?.name ?? activeVersion.name}</h1>
+          <p className={styles.eyebrow}>
+            {activeStoredVersion?.parentVersionId ? "Branch CV" : "Baseline CV"} · select content and tune layout
+          </p>
         </div>
         <div className={styles.topBarTools}>
+          <span aria-live="polite" className={styles.saveStatus}>
+            {dirtySidebarKeys.length > 0 ? "Unsaved changes" : saveState === "saved" ? "Saved" : ""}
+          </span>
+          {dirtySidebarKeys.length > 0 || saveState === "saving" ? (
+            <button
+              type="button"
+              className={styles.toolButton}
+              onClick={() => void persistDrafts()}
+              disabled={saveState === "saving"}
+            >
+              {saveState === "saving" ? "Saving…" : "Save"}
+            </button>
+          ) : null}
           <button
             type="button"
             className={isDiagnosticsOpen ? styles.activeToolButton : styles.toolButton}
@@ -341,9 +318,6 @@ export function EditorView() {
           >
             Diagnostics
           </button>
-          <p className={styles.subtitle}>
-            Edit structured content, tune layout, and preview the compiled CV.
-          </p>
         </div>
       </header>
       <aside className={styles.sidebar}>
@@ -358,12 +332,18 @@ export function EditorView() {
               </button>
               <button
                 type="button"
+                onClick={() => startRename(activeStoredVersion ?? activeVersion)}
+              >
+                Rename
+              </button>
+              <button
+                type="button"
                 className={styles.deleteVersionButton}
                 disabled={versions.length <= 1}
                 onClick={() => {
                   if (window.confirm(`Delete version "${activeVersion.name}"?`)) {
                     void deleteVersion(activeVersion.id).then(() => {
-                      navigate("/editor");
+                      navigate("/cvs");
                     });
                   }
                 }}
@@ -376,6 +356,36 @@ export function EditorView() {
             {versionTree.map((version) => {
               const depth = getVersionDepth(versions, version);
               const isInherited = Boolean(version.parentVersionId);
+
+              if (renamingVersionId === version.id) {
+                return (
+                  <form
+                    key={version.id}
+                    className={styles.renameForm}
+                    style={{ "--version-indent": `${depth * 0.9}rem` } as CSSProperties}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      finishRename();
+                    }}
+                  >
+                    <input
+                      value={renameDraft}
+                      autoFocus
+                      aria-label="CV version name"
+                      name="versionName"
+                      autoComplete="off"
+                      onChange={(event) => setRenameDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") {
+                          event.preventDefault();
+                          cancelRename();
+                        }
+                      }}
+                      onBlur={finishRename}
+                    />
+                  </form>
+                );
+              }
 
               return (
               <button
@@ -392,20 +402,6 @@ export function EditorView() {
               );
             })}
           </div>
-          <div className={styles.versionActions}>
-            {dirtySidebarKeys.length > 0 || saveState === "saving" ? (
-              <button type="button" onClick={() => void persistDrafts()} disabled={saveState === "saving"}>
-                {saveState === "saving" ? "Saving…" : "Save"}
-              </button>
-            ) : null}
-            <span aria-live="polite">
-              {dirtySidebarKeys.length > 0
-                ? "Unsaved changes"
-                : saveState === "saved"
-                  ? "Saved"
-                  : "Saved"}
-            </span>
-          </div>
         </section>
 
         <SectionOrderEditor
@@ -421,114 +417,32 @@ export function EditorView() {
       </aside>
 
       <section className={styles.editorColumn}>
-        <section className={styles.itemSummary}>
-          <div className={styles.itemSummaryMeta}>
-            <span>Selected CV</span>
-            {renamingVersionId === activeStoredVersion?.id ? (
-              <form
-                className={styles.renameForm}
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  finishRename();
-                }}
-              >
-                <input
-                  value={renameDraft}
-                  autoFocus
-                  aria-label="CV version name"
-                  name="versionName"
-                  autoComplete="off"
-                  onChange={(event) => setRenameDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Escape") {
-                      event.preventDefault();
-                      cancelRename();
-                    }
-                  }}
-                  onBlur={finishRename}
-                />
-              </form>
-            ) : (
-              <strong>{activeStoredVersion?.name ?? activeVersion.name}</strong>
-            )}
-          </div>
-          <div className={styles.itemSummaryActions}>
-            <span>{activeStoredVersion?.parentVersionId ? "branch" : "baseline"}</span>
-            <button
-              type="button"
-              className={styles.renameButton}
-              onClick={() => startRename(activeStoredVersion ?? activeVersion)}
-            >
-              Rename
-            </button>
-          </div>
-        </section>
         {selectedSidebarKey === "document" ? (
           <div className={styles.documentEditorShell}>
             <DocumentSettingsEditor
               version={activeVersion}
               template={activeTemplate}
               sourceState={inheritanceState.document ?? "baseline"}
-              hasUnsavedChanges={dirtySidebarKeys.length > 0}
-              saveState={saveState}
               onUpdateTypography={updateDocumentTypography}
               onUpdateSpacing={updateDocumentSpacing}
-              onSave={() => void persistDrafts()}
             />
           </div>
         ) : (
-          <>
-            <SectionSettingsPanel
-              sectionType={selectedSidebarKey}
-              version={activeVersion}
-              sourceState={inheritanceState[selectedSidebarKey] ?? "baseline"}
-              localAreaCount={localAreaCount}
-              hasUnsavedChanges={dirtySidebarKeys.includes(selectedSidebarKey)}
-              saveState={saveState}
-              onSave={() => void persistDrafts()}
-            />
-            <MasterContentEditor
-              canonicalProfile={profile}
-              profile={effectiveProfile}
-              version={activeVersion}
-              sectionType={selectedSidebarKey}
-              sourceState={inheritanceState[selectedSidebarKey] ?? "baseline"}
-              dirtyItemIds={
-                selectedSidebarKey === "education" ||
-                selectedSidebarKey === "experience" ||
-                selectedSidebarKey === "projects" ||
-                selectedSidebarKey === "skills"
-                  ? dirtyItemIdsBySection[selectedSidebarKey] ?? []
-                  : []
-              }
-              onUpdateCanonicalBasicsField={updateCanonicalBasicsField}
-              onUpdateVersionBasicsField={updateVersionBasicsField}
-              onClearVersionBasicsOverrides={clearVersionBasicsOverrides}
-              onUpdateSummary={updateSummary}
-              onUpdateSummaryLinkUrl={updateSummaryLinkUrl}
-              onUpdateEducationEntry={(id, patch) => updateEducationEntry(id, patch)}
-              onUpdateExperienceEntry={(id, patch) => updateExperienceEntry(id, patch)}
-              onUpdateProjectEntry={(id, patch) => updateProjectEntry(id, patch)}
-              onUpdateProjectDescriptionLinkUrl={updateProjectDescriptionLinkUrl}
-              onAddEntryLink={addEntryLink}
-              onUpdateEntryLink={updateEntryLink}
-              onRemoveEntryLink={removeEntryLink}
-              onUpdateSkillGroupName={updateSkillGroupName}
-              onUpdateSkillItem={updateSkillItem}
-              onAddSkillItem={addSkillItem}
-              onRemoveSkillItem={removeSkillItem}
-              onToggleSkillGroupSelection={toggleSkillGroupSelection}
-              onAddEntry={addEntry}
-              onRemoveEntry={removeEntry}
-              onAddBullet={addBullet}
-              onUpdateBullet={updateBullet}
-              onUpdateBulletLinkUrl={updateBulletLinkUrl}
-              onRemoveBullet={removeBullet}
-              onToggleItemSelection={toggleItemSelection}
-              onMoveSelectedItem={moveSelectedItem}
-              onToggleBulletSelection={toggleBulletSelection}
-            />
-          </>
+          <VersionContentPanel
+            canonicalProfile={profile}
+            profile={effectiveProfile}
+            version={activeVersion}
+            sectionType={selectedSidebarKey}
+            sourceState={inheritanceState[selectedSidebarKey] ?? "baseline"}
+            onToggleItemSelection={toggleItemSelection}
+            onMoveSelectedItem={moveSelectedItem}
+            onToggleBulletSelection={toggleBulletSelection}
+            onToggleSkillGroupSelection={toggleSkillGroupSelection}
+            onUpdateVersionBasicsField={updateVersionBasicsField}
+            onClearVersionBasicsOverrides={clearVersionBasicsOverrides}
+            onUpdateSummary={updateSummary}
+            onUpdateSummaryLinkUrl={updateSummaryLinkUrl}
+          />
         )}
         {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
       </section>

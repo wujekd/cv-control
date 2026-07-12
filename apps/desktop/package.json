@@ -5,7 +5,7 @@
   "main": "dist/main.mjs",
   "scripts": {
     "build": "node build.mjs",
-    "dev": "npm run build && CV_DEV_SERVER_URL=http://localhost:5173 electron .",
+    "dev": "sh -c 'npm run build --workspace @cv-control/shared && npm run build --workspace @cv-control/api && npm run build:electron --workspace @cv-control/web && npm run build && node scripts/swap-abi.mjs electron && electron .; status=$?; node scripts/swap-abi.mjs node; exit $status'",
     "dist": "npm run build && node scripts/swap-abi.mjs electron && electron-builder --config electron-builder.yml && node scripts/swap-abi.mjs node"
   },
   "dependencies": {

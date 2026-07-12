@@ -79,22 +79,16 @@ interface DocumentSettingsEditorProps {
   version: CvVersion;
   template: DocumentTemplate;
   sourceState: "baseline" | "inherited" | "custom";
-  hasUnsavedChanges: boolean;
-  saveState: "idle" | "saving" | "saved" | "error";
   onUpdateTypography: (field: keyof DocumentTypographySettings, value: number | null) => void;
   onUpdateSpacing: (field: keyof DocumentSpacingSettings, value: number | null) => void;
-  onSave: () => void;
 }
 
 export function DocumentSettingsEditor({
   version,
   template,
   sourceState,
-  hasUnsavedChanges,
-  saveState,
   onUpdateTypography,
-  onUpdateSpacing,
-  onSave
+  onUpdateSpacing
 }: DocumentSettingsEditorProps) {
   const resolvedStyle = resolveDocumentStyle(template, version.documentStyleOverrides);
   const typographyOverrides = version.documentStyleOverrides?.typography ?? {};
@@ -115,16 +109,6 @@ export function DocumentSettingsEditor({
             <span>Template</span>
             <strong>{template.name}</strong>
           </div>
-          {hasUnsavedChanges || saveState === "saving" ? (
-            <button
-              type="button"
-              className={styles.saveButton}
-              onClick={onSave}
-              disabled={saveState === "saving"}
-            >
-              {saveState === "saving" ? "Saving…" : "Save"}
-            </button>
-          ) : null}
         </div>
       </header>
 

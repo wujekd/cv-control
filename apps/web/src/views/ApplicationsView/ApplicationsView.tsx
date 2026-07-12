@@ -3,11 +3,13 @@ import {
   type ApplicationStatus,
   type JobApplication
 } from "@cv-control/shared";
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApplicationsStore } from "../../stores/applicationsStore";
 import { useEditorStore } from "../../stores/editorStore";
 import styles from "./ApplicationsView.module.css";
+
+type CvLinkMode = "none" | "existing" | "custom";
 
 interface ApplicationFormState {
   company: string;
@@ -16,18 +18,24 @@ interface ApplicationFormState {
   status: ApplicationStatus;
   appliedAt: string;
   notes: string;
+  cvMode: CvLinkMode;
   versionId: string;
+  baseVersionId: string;
 }
 
-const EMPTY_FORM: ApplicationFormState = {
-  company: "",
-  role: "",
-  postingUrl: "",
-  status: "draft",
-  appliedAt: "",
-  notes: "",
-  versionId: ""
-};
+function createEmptyForm(versionId = ""): ApplicationFormState {
+  return {
+    company: "",
+    role: "",
+    postingUrl: "",
+    status: "draft",
+    appliedAt: "",
+    notes: "",
+    cvMode: versionId ? "existing" : "none",
+    versionId,
+    baseVersionId: versionId
+  };
+}
 
 const STATUS_LABELS: Record<ApplicationStatus, string> = {
   draft: "Draft",
@@ -45,20 +53,25 @@ function toFormState(application: JobApplication): ApplicationFormState {
     status: application.status,
     appliedAt: application.appliedAt?.slice(0, 10) ?? "",
     notes: application.notes ?? "",
-    versionId: application.versionId ?? ""
+    cvMode: application.versionId ? "existing" : "none",
+    versionId: application.versionId ?? "",
+    baseVersionId: application.versionId ?? ""
   };
 }
 
 export function ApplicationsView() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const versions = useEditorStore((state) => state.versions);
+  const branchVersion = useEditorStore((state) => state.branchVersion);
   const isBootstrapping = useEditorStore((state) => state.isBootstrapping);
   const { applications, saveState, errorMessage, createApplication, updateApplication, setStatus, deleteApplication } =
     useApplicationsStore();
 
-  const [form, setForm] = useState<ApplicationFormState>(EMPTY_FORM);
+  const [form, setForm] = useState<ApplicationFormState>(() => createEmptyForm());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const handledPrefillKey = useRef<string | null>(null);
 
   const versionName = (versionId: string | null) =>
     versions.find((version) => version.id === versionId)?.name ?? null;
@@ -67,8 +80,19 @@ export function ApplicationsView() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const openCreateForm = () => {
-    setForm(EMPTY_FORM);
+  const setCvMode = (cvMode: CvLinkMode) => {
+    setForm((current) => ({
+      ...current,
+      cvMode,
+      versionId:
+        cvMode === "existing" ? current.versionId || versions[0]?.id || "" : current.versionId,
+      baseVersionId:
+        cvMode === "custom" ? current.baseVersionId || current.versionId || versions[0]?.id || "" : current.baseVersionId
+    }));
+  };
+
+  const openCreateForm = (versionId = "") => {
+    setForm(createEmptyForm(versionId));
     setEditingId(null);
     setIsFormOpen(true);
   };
@@ -82,24 +106,61 @@ export function ApplicationsView() {
   const closeForm = () => {
     setIsFormOpen(false);
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm(createEmptyForm());
   };
+
+  useEffect(() => {
+    const prefillVersionId = searchParams.get("versionId") ?? "";
+    const shouldOpenBlank = searchParams.get("new") === "1";
+    const prefillKey = searchParams.toString();
+
+    if (!prefillKey || handledPrefillKey.current === prefillKey) {
+      return;
+    }
+
+    if (prefillVersionId || shouldOpenBlank) {
+      handledPrefillKey.current = prefillKey;
+      openCreateForm(prefillVersionId);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    const company = form.company.trim();
+    const role = form.role.trim();
+
+    if (!company || !role) {
+      return;
+    }
+
+    let linkedVersionId = form.cvMode === "existing" ? form.versionId || null : null;
+    let customVersionId: string | null = null;
+
+    if (form.cvMode === "custom") {
+      const sourceVersionId = form.baseVersionId || versions[0]?.id;
+      if (!sourceVersionId) {
+        return;
+      }
+
+      const name = [company, role].filter(Boolean).join(" — ") || "Tailored CV";
+      const branch = await branchVersion(sourceVersionId, name);
+      if (!branch) {
+        return;
+      }
+
+      linkedVersionId = branch.id;
+      customVersionId = branch.id;
+    }
+
     const payload = {
-      company: form.company.trim(),
-      role: form.role.trim(),
+      company,
+      role,
       postingUrl: form.postingUrl.trim() || undefined,
       status: form.status,
       appliedAt: form.appliedAt || undefined,
       notes: form.notes.trim() || undefined,
-      versionId: form.versionId || null
+      versionId: linkedVersionId
     };
-
-    if (!payload.company || !payload.role) {
-      return;
-    }
 
     if (editingId) {
       const existing = applications.find((item) => item.id === editingId);
@@ -107,9 +168,30 @@ export function ApplicationsView() {
         await updateApplication({ ...existing, ...payload });
       }
     } else {
-      await createApplication(payload);
+      const created = await createApplication(payload);
+      if (!created) {
+        return;
+      }
     }
     closeForm();
+
+    if (customVersionId) {
+      navigate(`/cvs/${customVersionId}`);
+    }
+  };
+
+  const handleTailor = async (application: JobApplication) => {
+    const baseId = application.versionId ?? versions[0]?.id;
+    if (!baseId) {
+      return;
+    }
+    const name = [application.company, application.role].filter(Boolean).join(" — ") || "Tailored CV";
+    const branch = await branchVersion(baseId, name);
+    if (!branch) {
+      return;
+    }
+    await updateApplication({ ...application, versionId: branch.id });
+    navigate(`/cvs/${branch.id}`);
   };
 
   const handleDelete = (application: JobApplication) => {
@@ -129,7 +211,7 @@ export function ApplicationsView() {
           {saveState === "error" && errorMessage ? (
             <span className={styles.errorText}>{errorMessage}</span>
           ) : null}
-          <button type="button" onClick={openCreateForm}>
+          <button type="button" onClick={() => openCreateForm()}>
             New Application
           </button>
         </div>
@@ -186,20 +268,71 @@ export function ApplicationsView() {
                 onChange={(event) => setField("appliedAt", event.target.value)}
               />
             </label>
-            <label>
-              <span>CV Version</span>
-              <select
-                value={form.versionId}
-                onChange={(event) => setField("versionId", event.target.value)}
-              >
-                <option value="">Not linked</option>
-                {versions.map((version) => (
-                  <option key={version.id} value={version.id}>
-                    {version.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <fieldset className={styles.cvField}>
+              <legend>CV</legend>
+              <div className={styles.cvModeGrid}>
+                <label className={form.cvMode === "none" ? styles.cvModeActive : styles.cvMode}>
+                  <input
+                    type="radio"
+                    name="cvMode"
+                    checked={form.cvMode === "none"}
+                    onChange={() => setCvMode("none")}
+                  />
+                  <span>No CV yet</span>
+                </label>
+                <label className={form.cvMode === "existing" ? styles.cvModeActive : styles.cvMode}>
+                  <input
+                    type="radio"
+                    name="cvMode"
+                    checked={form.cvMode === "existing"}
+                    onChange={() => setCvMode("existing")}
+                  />
+                  <span>Use ready CV</span>
+                </label>
+                <label className={form.cvMode === "custom" ? styles.cvModeActive : styles.cvMode}>
+                  <input
+                    type="radio"
+                    name="cvMode"
+                    checked={form.cvMode === "custom"}
+                    onChange={() => setCvMode("custom")}
+                    disabled={versions.length === 0}
+                  />
+                  <span>Custom for job</span>
+                </label>
+              </div>
+              {form.cvMode === "existing" ? (
+                <label className={styles.cvSelectField}>
+                  <span>Ready CV</span>
+                  <select
+                    value={form.versionId}
+                    disabled={versions.length === 0}
+                    onChange={(event) => setField("versionId", event.target.value)}
+                  >
+                    {versions.map((version) => (
+                      <option key={version.id} value={version.id}>
+                        {version.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              {form.cvMode === "custom" ? (
+                <label className={styles.cvSelectField}>
+                  <span>Inherit From</span>
+                  <select
+                    value={form.baseVersionId}
+                    disabled={versions.length === 0}
+                    onChange={(event) => setField("baseVersionId", event.target.value)}
+                  >
+                    {versions.map((version) => (
+                      <option key={version.id} value={version.id}>
+                        {version.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+            </fieldset>
             <label className={styles.notesField}>
               <span>Notes</span>
               <textarea
@@ -261,7 +394,7 @@ export function ApplicationsView() {
                   <button
                     type="button"
                     className={styles.versionLink}
-                    onClick={() => navigate(`/editor/${application.versionId}`)}
+                    onClick={() => navigate(`/cvs/${application.versionId}`)}
                   >
                     {versionName(application.versionId)}
                   </button>
@@ -271,6 +404,18 @@ export function ApplicationsView() {
               </div>
               {application.notes ? <p className={styles.notes}>{application.notes}</p> : null}
               <div className={styles.rowActions}>
+                <button
+                  type="button"
+                  title={
+                    application.versionId
+                      ? "Branch the linked CV into a copy just for this application and open it"
+                      : "Create a CV copy for this application and open it"
+                  }
+                  disabled={versions.length === 0}
+                  onClick={() => void handleTailor(application)}
+                >
+                  Tailor CV
+                </button>
                 <button type="button" onClick={() => openEditForm(application)}>
                   Edit
                 </button>
