@@ -1,0 +1,379 @@
+.intro {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px clamp(22px, 5vw, 76px) 40px;
+  background:
+    linear-gradient(135deg, rgba(117, 139, 75, 0.12), transparent 48%),
+    #f0eadc;
+  color: #162019;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(22, 32, 25, 0.22);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.introContent {
+  width: min(100%, 1080px);
+  margin: auto 0;
+  padding: 12vh 0;
+}
+
+.eyebrow,
+.storyIndex,
+.chapterKicker,
+.bowlLabel {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  max-width: 11ch;
+  margin: 20px 0 26px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(3.7rem, 10.5vw, 9.5rem);
+  font-weight: 400;
+  letter-spacing: -0.075em;
+  line-height: 0.84;
+}
+
+.introLede {
+  max-width: 44ch;
+  margin: 0 0 0 min(12vw, 170px);
+  color: #4d594f;
+  font-size: clamp(1rem, 1.8vw, 1.32rem);
+  line-height: 1.55;
+}
+
+.jumpLink {
+  align-self: flex-end;
+  display: inline-flex;
+  gap: 38px;
+  padding: 14px 0;
+  border-bottom: 1px solid currentColor;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.jumpLink:focus-visible {
+  outline: 2px solid #315c41;
+  outline-offset: 8px;
+}
+
+#experiment {
+  scroll-margin-top: 0;
+}
+
+.ingredientStory {
+  position: relative;
+  height: 400svh;
+  color: #f5f0e4;
+  background: #101812;
+}
+
+.storyStage {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.65fr);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 27% 48%, rgba(89, 128, 76, 0.2), transparent 36%),
+    linear-gradient(120deg, #101812 0%, #101812 56%, #151b16 56%);
+}
+
+.sceneColumn {
+  position: relative;
+  min-width: 0;
+}
+
+.sceneColumn canvas {
+  position: absolute !important;
+  inset: 0;
+}
+
+.sceneGlow {
+  position: absolute;
+  inset: 17% 18% 15%;
+  border-radius: 50%;
+  background: rgba(160, 171, 107, 0.09);
+  filter: blur(60px);
+}
+
+.sceneLoading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(245, 240, 228, 0.46);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.bowlLabel {
+  position: absolute;
+  left: clamp(22px, 4vw, 60px);
+  bottom: 36px;
+  color: rgba(245, 240, 228, 0.42);
+}
+
+.copyColumn {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(30px, 6vw, 94px);
+  border-left: 1px solid rgba(245, 240, 228, 0.12);
+}
+
+.storyIndex {
+  position: absolute;
+  top: 36px;
+  color: rgba(245, 240, 228, 0.42);
+}
+
+.chapterStack {
+  position: relative;
+  min-height: 390px;
+}
+
+.chapterCard {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(28px);
+  transition:
+    opacity 420ms ease,
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 520ms;
+}
+
+.chapterCard.isActive {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition-delay: 80ms, 80ms, 0s;
+}
+
+.chapterKicker {
+  color: #a8bb6e;
+}
+
+.chapterCard h2 {
+  max-width: 8ch;
+  margin: 20px 0 28px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(3rem, 5.5vw, 6.4rem);
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  line-height: 0.88;
+}
+
+.chapterCard > p:last-child {
+  max-width: 36ch;
+  margin: 0;
+  color: rgba(245, 240, 228, 0.64);
+  font-size: clamp(0.95rem, 1.25vw, 1.12rem);
+  line-height: 1.65;
+}
+
+.chapterProgress {
+  position: absolute;
+  right: clamp(20px, 3vw, 48px);
+  bottom: 38px;
+  left: clamp(20px, 3vw, 48px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.chapterProgress span {
+  height: 2px;
+  background: rgba(245, 240, 228, 0.16);
+  transition: background-color 300ms ease;
+}
+
+.chapterProgress span.isActive {
+  background: #a8bb6e;
+}
+
+.scrollCue {
+  position: absolute;
+  z-index: 3;
+  top: 36px;
+  left: clamp(22px, 4vw, 60px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: rgba(245, 240, 228, 0.52);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.scrollCue span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a8bb6e;
+  box-shadow: 0 0 0 5px rgba(168, 187, 110, 0.12);
+}
+
+.outro {
+  min-height: 92svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(70px, 11vw, 160px) clamp(22px, 7vw, 110px);
+  background: #d87834;
+  color: #26150c;
+}
+
+.outro h2 {
+  margin: 18px 0 clamp(70px, 10vw, 140px);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(3.8rem, 10vw, 10rem);
+  font-weight: 400;
+  letter-spacing: -0.07em;
+  line-height: 0.86;
+}
+
+.outroGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  counter-reset: findings;
+}
+
+.outroGrid p {
+  max-width: 30ch;
+  margin: 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(38, 21, 12, 0.35);
+  line-height: 1.55;
+  counter-increment: findings;
+}
+
+.outroGrid p::before {
+  content: '0' counter(findings);
+  display: block;
+  margin-bottom: 24px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+@media (max-width: 760px) {
+  .intro {
+    padding-bottom: 28px;
+  }
+
+  .introContent {
+    padding: 8vh 0;
+  }
+
+  .introLede {
+    margin-left: 0;
+  }
+
+  .storyStage {
+    grid-template-columns: 1fr;
+    grid-template-rows: 59svh 41svh;
+    background:
+      radial-gradient(circle at 50% 28%, rgba(89, 128, 76, 0.22), transparent 34%),
+      #101812;
+  }
+
+  .copyColumn {
+    justify-content: flex-start;
+    padding: 34px 24px 30px;
+    border-top: 1px solid rgba(245, 240, 228, 0.12);
+    border-left: 0;
+    background: rgba(16, 24, 18, 0.96);
+  }
+
+  .storyIndex,
+  .bowlLabel {
+    display: none;
+  }
+
+  .chapterStack {
+    min-height: 250px;
+  }
+
+  .chapterCard {
+    justify-content: flex-start;
+  }
+
+  .chapterCard h2 {
+    margin: 10px 0 13px;
+    font-size: clamp(2.6rem, 13vw, 4.5rem);
+  }
+
+  .chapterCard > p:last-child {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .chapterProgress {
+    right: 24px;
+    bottom: 18px;
+    left: 24px;
+  }
+
+  .scrollCue {
+    top: 24px;
+    left: 22px;
+  }
+
+  .outroGrid {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ingredientStory {
+    height: auto;
+  }
+
+  .storyStage {
+    position: relative;
+  }
+
+  .chapterCard,
+  .chapterProgress span {
+    transition: none;
+  }
+
+  .scrollCue,
+  .chapterProgress {
+    display: none;
+  }
+}
